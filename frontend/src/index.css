@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+  font-family: "Marcellus", Roboto, sans-serif;
+}
+
+@layer components{
+  .search-bar {
+    @apply w-0 group-hover:w-[250px] transition-all duration-300 rounded-full group-hover:border group-hover:border-gray-500 py-1 px-6 focus:outline-none focus:border-brandGreen focus:outline-none focus:w-[250px] dark:text-brandWhite ; 
+  }
+}
+@layer utilities{
+  .Caro-bg{
+    @apply bg-[linear-gradient(63deg,_#DADDEB_0%,_#EDF0F2_100%)] dark:bg-[linear-gradient(120deg,_#020024_0%,_#022417_100%)];
+  }
+  .Cat-bg{
+    @apply bg-[linear-gradient(90deg,_#81D2EB_0%,_#DDFFD9_100%)] dark:bg-[linear-gradient(90deg,_#020024_0%,_#032118_100%)] dark:text-brandWhite
+  }
+  .hovTransition{
+    @apply bg-brandGreen text-brandWhite hover:bg-brandBlue hover:text-brandWhite dark:bg-brandWhite dark:text-brandGreen dark:hover:bg-brandGreen dark:hover:text-brandWhite  disabled:bg-gray-300 disabled:text-black dark:disabled:bg-gray-300 dark:disabled:text-black rounded  transition-all duration-500;
+  }
+  
+}
