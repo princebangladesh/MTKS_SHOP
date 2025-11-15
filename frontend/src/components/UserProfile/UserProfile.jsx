@@ -4,6 +4,7 @@ import OrderList from "./OrderList";
 import Dashboard from "./Dashboard"; // Assuming you have this component
 import Sidebar from "./Sidebar";
 import Profile from "./Profile";
+import ChangePasswordForm from "./change_password";
 
 export default function UserProfile() {
   const [activeTab, setActiveTab] = useState("dashboard"); // Default tab
@@ -13,9 +14,6 @@ export default function UserProfile() {
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <div className="flex-1 p-8">
-        <h1 className="text-2xl font-bold text-center mb-2">
-          Welcome back, Nafiul
-        </h1>
 
         {/* Tab-based content rendering */}
         {activeTab === "dashboard" && (
@@ -34,6 +32,12 @@ export default function UserProfile() {
             <Profile />
           </div>
         )}
+        {activeTab === "password" && (
+          <div>
+            <ChangePasswordForm setActiveTab={setActiveTab}/>
+          </div>
+        )}
+
 
         {/* Add more views like wishlist, profile, etc. */}
       </div>

@@ -5,8 +5,6 @@ export default function Sidebar({ activeTab, setActiveTab }) {
    { key: "dashboard", label: "Dashboard", icon: "🏠" },
    { key: "orders", label: "Orders", icon: "📄" },
    { key: "wishlist", label: "Wishlist", icon: "💜" },
-   { key: "billing", label: "Billing Address", icon: "📍" },
-   { key: "shipping", label: "Shipping Address", icon: "📦" },
    { key: "profile", label: "Profile", icon: "👤" },
     { key: "password", label: "Change Password", icon: "🔒" },
     { key: "logout", label: "Logout", icon: "🚪" },

@@ -44,8 +44,6 @@ export default function DashboardSummary({activeTab, setActiveTab}) {
             <Card icon="📄" label="Orders" onClick={() => setActiveTab("orders")} />
             <Card icon="💜" label="Wishlist" onClick={() => setActiveTab("wishlist")} />
             <Card icon="👤" label="Profile" onClick={() => setActiveTab("profile")} />
-            <Card icon="📍" label="Billing Address" onClick={() => setActiveTab("billing")} />
-            <Card icon="📦" label="Shipping Address" onClick={() => setActiveTab("shipping")} />
             <Card icon="🔒" label="Change Password" onClick={() => setActiveTab("password")} />
             <Card icon="🚪" label="Logout" onClick={() => setActiveTab("logout")} />
           </div>

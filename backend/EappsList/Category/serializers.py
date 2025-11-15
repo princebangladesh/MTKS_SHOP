@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from EappsList.Category.models import Category, SubCategory, SubPreCategory,SubPostCategory
+from ..Category.models import Category, SubCategory, SubPreCategory,SubPostCategory
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

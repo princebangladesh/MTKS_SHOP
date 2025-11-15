@@ -14,9 +14,10 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+from datetime import timedelta
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -27,6 +28,8 @@ SECRET_KEY = 'os.getenv("DJANGO_SECRET_KEY")'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+
 
 
 # Application definition
@@ -50,7 +53,13 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.linkedin_oauth2',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
+
+    'EappsList.Category',
+    'EappsList.LandingPage',
+    'EappsList.Product',
+    'EappsList.Cart',
     'EappsList.UserProfile',
+    'EappsList.Order',
 
 ]
 SITE_ID = 1
@@ -109,7 +118,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',  # for browsable API
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-                # or JWT
     ],
     
 }
@@ -145,13 +153,17 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+]
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media/'
+IMAGES_DIR = MEDIA_ROOT / 'images'
 
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -211,3 +223,19 @@ SOCIAL_AUTH_GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI')
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 LOGIN_REDIRECT_URL = '/user'
+APPEND_SLASH = True
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  
+    'ROTATE_REFRESH_TOKENS': True,                
+    'BLACKLIST_AFTER_ROTATION': True,             
+}
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:3000",   # your React dev server (if it makes POSTs)
+    # "https://your-domain.com",
+    # "https://*.ngrok-free.app",
+]

@@ -19,6 +19,10 @@ import BrandListProduct from './components/brandListProduct.jsx';
 import CategoryList from './components/categorylist.jsx';
 import TestGoogleLogin from './components/test.jsx';
 import UserProfile from './components/UserProfile/UserProfile.jsx';
+import CheckoutPage from './components/checkout.jsx';
+import OrderSuccessPage from './components/orderSuccessPage.jsx';
+import OrderList from './components/UserProfile/OrderList.jsx';
+import OrderDetails from './components/UserProfile/orderdetails.jsx';
 
 function App() {
   return (
@@ -38,6 +42,10 @@ function App() {
       <Route path="/trending" element={<TrendingList />} />
       <Route path="/featured" element={<FeaturedList />} />
       <Route path="/user" element={<UserProfile />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+      <Route path="/orders/:orderId" element={<OrderDetails />} />
+      <Route path="/my-orders" element={<OrderList />} />
       <Route path="/brands/:slug" element={<BrandListProduct />} />
       <Route path="/category/:slug" element={<CategoryList />} />
       </Routes>

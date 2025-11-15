@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from django.contrib import admin
-from . models import Brand,Regular_size,Product,ProductQuestion,Colour
+from . models import Brand,Product,ProductQuestion,Colour,ProductVariant
 # Register your models here.
 class BrandAdmin(admin.ModelAdmin):
       list_display=('name','icon_in_landing_page')
@@ -19,8 +19,9 @@ class ProductAdmin(admin.ModelAdmin):
       
 
 admin.site.register(Brand,BrandAdmin)
-admin.site.register(Regular_size)
+
 admin.site.register(Product)
+admin.site.register(ProductVariant)
 admin.site.register(ProductQuestion)
 
 admin.site.register(Colour)

@@ -48,7 +48,7 @@ const WishlistPage = () => {
               className="border rounded-lg p-4 shadow hover:shadow-md transition duration-300 flex flex-col items-center bg-white"
             >
               <img
-                src={item.image1 || '/fallback-image.png'}
+                src={item.image || '/fallback-image.png'}
                 alt={item.name}
                 className="w-32 h-32 object-contain mb-4"
               />

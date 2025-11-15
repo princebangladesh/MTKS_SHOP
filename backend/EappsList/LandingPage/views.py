@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 from .models import Carousel
-from .serializer import CarouselSerializer
+from .serializers import CarouselSerializer
 from rest_framework.viewsets import ReadOnlyModelViewSet,ModelViewSet
 
 # Create your views here.

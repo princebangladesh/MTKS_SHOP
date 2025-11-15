@@ -1,105 +1,135 @@
-from django.shortcuts import render
-from rest_framework import viewsets, permissions
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from .models import Cart, CartItem, Wishlist, Coupon
+from .serializers import (
+    CartSerializer,
+    CartItemSerializer,
+    WishlistSerializer
+)
+from .utils import get_or_create_default_variant
+from ..Product.models import Product, ProductVariant
+from rest_framework.views import APIView
+from django.db.models import F
+
+
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .serializers import CartSerializer, ProductSerializer, WishlistSerializer,CartItemSerializer
-from .models import Cart, CartItem, Wishlist
-from rest_framework.exceptions import PermissionDenied 
-from ..Product.models import Product
-from .models import Coupon
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-
-def cart_view(request):
-    coupons = Coupon.objects.all()
-    return render(request, 'cart.html', {'coupons': coupons})
+from .models import Cart, CartItem
+from ..Product.models import Product, ProductVariant
+from .serializers import CartItemSerializer
 
 
 class CartViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
+    def _get_cart(self, user):
+        """Get or create a cart for the logged-in user."""
+        cart, _ = Cart.objects.get_or_create(user=user)
+        return cart
+
     def list(self, request):
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        serializer = CartSerializer(cart)
+        """Return the user's cart with all items."""
+        cart = self._get_cart(request.user)
+        serializer = CartSerializer(cart, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'])
     def add(self, request):
-        product_id = request.data.get('product_id')
-        quantity = int(request.data.get('quantity', 1))
+        """Add a product or variant to the user's cart."""
+        cart = self._get_cart(request.user)
+        variant_id = request.data.get("variant_id")
+        product_id = request.data.get("product_id")
 
-        product = Product.objects.get(id=product_id)
-        cart, _ = Cart.objects.get_or_create(user=request.user)
+        try:
+            quantity = int(request.data.get("quantity", 1))
+            if quantity < 1:
+                raise ValueError
+        except (TypeError, ValueError):
+            return Response({"error": "Quantity must be a positive integer."}, status=400)
 
-        cart_item, created = CartItem.objects.get_or_create(
-            cart=cart, product=product,
-            defaults={'quantity': quantity}
-        )
+        if variant_id:
+            variant = get_object_or_404(ProductVariant, id=variant_id)
+            cart_item, created = CartItem.objects.get_or_create(cart=cart, variant=variant)
+        elif product_id:
+            product = get_object_or_404(Product, id=product_id)
+            if product.variants.exists():
+                return Response({"error": "This product has variants. Please select one."}, status=400)
+            cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+        else:
+            return Response({"error": "variant_id or product_id is required."}, status=400)
+
         if not created:
-            cart_item.quantity += quantity
+            cart_item.quantity = F("quantity") + quantity
+            cart_item.save(update_fields=["quantity"])
+            cart_item.refresh_from_db()
+        else:
+            cart_item.quantity = quantity
             cart_item.save()
 
-        return Response(CartItemSerializer(cart_item).data)
+        serializer = CartItemSerializer(cart_item, context={"request": request})
+        return Response(serializer.data, status=201)
 
     @action(detail=False, methods=['post'])
     def remove(self, request):
-        product_id = request.data.get('product_id')
-        cart = Cart.objects.get(user=request.user)
-        CartItem.objects.filter(cart=cart, product_id=product_id).delete()
-        return Response({"message": "Item removed"})
+        """Remove an item from the user's cart."""
+        cart = self._get_cart(request.user)
+        variant_id = request.data.get("variant_id")
+        product_id = request.data.get("product_id")
+
+        if variant_id:
+            deleted, _ = CartItem.objects.filter(cart=cart, variant_id=variant_id).delete()
+        elif product_id:
+            deleted, _ = CartItem.objects.filter(cart=cart, product_id=product_id).delete()
+        else:
+            return Response({"error": "variant_id or product_id is required."}, status=400)
+
+        if deleted:
+            return Response({"message": "Item removed successfully."}, status=200)
+        return Response({"error": "Item not found."}, status=404)
 
     @action(detail=False, methods=['post'])
     def update_quantity(self, request):
-        product_id = request.data.get('product_id')
-        quantity = int(request.data.get('quantity', 1))
+        """Update item quantity."""
+        cart = self._get_cart(request.user)
+        variant_id = request.data.get("variant_id")
+        product_id = request.data.get("product_id")
 
-        cart = Cart.objects.get(user=request.user)
-        item = CartItem.objects.get(cart=cart, product_id=product_id)
-        item.quantity = quantity
-        item.save()
-        
+        try:
+            quantity = int(request.data.get("quantity", 1))
+            if quantity < 1:
+                raise ValueError
+        except (TypeError, ValueError):
+            return Response({"error": "Quantity must be a positive integer."}, status=400)
+
+        try:
+            if variant_id:
+                item = CartItem.objects.get(cart=cart, variant_id=variant_id)
+            elif product_id:
+                item = CartItem.objects.get(cart=cart, product_id=product_id)
+            else:
+                return Response({"error": "variant_id or product_id is required."}, status=400)
+
+            item.quantity = quantity
+            item.save()
+            serializer = CartItemSerializer(item, context={"request": request})
+            return Response(serializer.data)
+        except CartItem.DoesNotExist:
+            return Response({"error": "Cart item not found."}, status=404)
+
     @action(detail=False, methods=['delete'])
     def clear(self, request):
-        """Clears all cart items for the current user."""
+        """Clear all items from user's cart."""
         CartItem.objects.filter(cart__user=request.user).delete()
-        return Response({"message": "Cart cleared successfully"}, status=status.HTTP_204_NO_CONTENT)
-
-
-        return Response(CartItemSerializer(item).data)
-# class WishlistViewSet(viewsets.ModelViewSet):
-#     serializer_class = WishlistSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get_queryset(self):
-#         return Wishlist.objects.filter(user=self.request.user)
-
-#     @action(detail=True, methods=['post'])
-#     def add_product(self, request, pk=None):
-#         wishlist = self.get_object()
-#         product_id = request.data.get('product_id')
-#         wishlist.products.add(product_id)
-#         wishlist.save()
-#         return Response({'status': 'product added'})
-
-#     @action(detail=True, methods=['post'])
-#     def remove_product(self, request, pk=None):
-#         wishlist = self.get_object()
-#         product_id = request.data.get('product_id')
-#         wishlist.products.remove(product_id)
-#         wishlist.save()
-#         return Response({'status': 'product removed'})
-    
-# views.py
-from rest_framework.views import APIView
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Wishlist
-from .serializers import WishlistSerializer
+        return Response({"message": "Cart cleared successfully."}, status=204)
 
 class WishlistView(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = WishlistSerializer
 
     def get_queryset(self):
@@ -109,33 +139,67 @@ class WishlistView(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
         product_id = request.data.get('product_id')
+
         if not product_id:
-            return Response({'error': 'product_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'product_id is required'}, status=400)
+
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
-            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Product not found'}, status=404)
 
-        # Check if already exists
         if wishlist.products.filter(id=product.id).exists():
-            return Response({'detail': 'Product already in wishlist'}, status=status.HTTP_200_OK)
+            return Response({'detail': 'Product already in wishlist'}, status=200)
 
         wishlist.products.add(product)
-        return Response({'detail': 'Product added to wishlist'}, status=status.HTTP_201_CREATED)
+        return Response({'detail': 'Product added to wishlist'}, status=201)
 
     @action(detail=False, methods=['delete'])
     def remove(self, request):
-        # Custom DELETE action to remove product from wishlist
         wishlist = Wishlist.objects.filter(user=request.user).first()
         if not wishlist:
-            return Response({'error': 'Wishlist not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Wishlist not found'}, status=404)
 
         product_id = request.data.get('product_id')
         if not product_id:
-            return Response({'error': 'product_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'product_id is required'}, status=400)
 
-        try:
-            wishlist.products.remove(product_id)
-            return Response({'detail': 'Product removed from wishlist'}, status=status.HTTP_200_OK)
-        except Wishlist.DoesNotExist:
-            return Response({'error': 'Product not in wishlist'}, status=status.HTTP_404_NOT_FOUND)
+        wishlist.products.remove(product_id)
+        return Response({'detail': 'Product removed from wishlist'}, status=200)
+
+
+# Optional: separate view for guest cart sync (add this to urls.py manually)
+from rest_framework.views import APIView
+
+class GuestCartSyncView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        items = request.data.get("items", [])
+        if not isinstance(items, list):
+            return Response({"error": "Invalid payload"}, status=400)
+
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+
+        for entry in items:
+            variant_id = entry.get("variant_id")
+            quantity = int(entry.get("quantity", 1))
+
+            if not variant_id:
+                continue
+
+            try:
+                variant = ProductVariant.objects.get(id=variant_id)
+            except ProductVariant.DoesNotExist:
+                continue
+
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                variant=variant,
+                defaults={"quantity": quantity}
+            )
+            if not created:
+                cart_item.quantity = F("quantity") + quantity
+                cart_item.save()
+
+        return Response({"message": "Cart synced successfully"})

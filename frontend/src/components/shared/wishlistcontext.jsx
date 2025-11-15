@@ -52,7 +52,7 @@ export const WishlistProvider = ({ children }) => {
         console.log(`Syncing ${guestWishlist.length} items from guest wishlist to backend...`);
         for (const product of guestWishlist) {
           try {
-            await axios.post('http://localhost:8000/wishlist/', { product_id: product.id });
+            await axios.post('http://localhost:8000/api/wishlist/', { product_id: product.id });
           } catch (err) {
             console.error(`Error syncing product ${product.id}:`, err.response || err.message);
           }
@@ -61,7 +61,7 @@ export const WishlistProvider = ({ children }) => {
       }
 
       // Now fetch wishlist from backend
-      const res = await axios.get('http://localhost:8000/wishlist/', {
+      const res = await axios.get('http://localhost:8000/api/wishlist/', {
         headers: {
           Authorization: `Bearer ${currentToken}`,
         },
@@ -94,7 +94,7 @@ export const WishlistProvider = ({ children }) => {
     try {
       const currentToken = localStorage.getItem('access');
       console.log('Adding to wishlist with token:', currentToken);
-      const response = await axios.post('http://localhost:8000/wishlist/', { product_id: product.id });
+      const response = await axios.post('http://localhost:8000/api/wishlist/', { product_id: product.id });
       console.log('Add to wishlist response:', response.data);
       
       // After successful add, you may want to refetch or update the wishlist properly
@@ -126,7 +126,7 @@ export const WishlistProvider = ({ children }) => {
       console.log('Removing from wishlist with token:', currentToken);
 
       // Make DELETE request with product_id in request body
-      await axios.delete('http://localhost:8000/wishlist/remove/', {
+      await axios.delete('http://localhost:8000/api/wishlist/remove/', {
         headers: {
           Authorization: `Bearer ${currentToken}`
         },
@@ -135,12 +135,6 @@ export const WishlistProvider = ({ children }) => {
 
       // Optimistically update local wishlist state by filtering out removed item
       setWishlist(prev => prev.filter(item => item.id !== productId));
-
-      // Optionally, refetch the wishlist from backend to ensure syncing
-      // const res = await axios.get('http://localhost:8000/wishlist/', {
-      //   headers: { Authorization: `Bearer ${currentToken}` }
-      // });
-      // setWishlist(res.data[0]?.products || []);
 
     } catch (err) {
       console.error('Remove error:', err.response || err.message);

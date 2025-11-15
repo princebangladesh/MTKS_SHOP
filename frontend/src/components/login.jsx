@@ -48,7 +48,7 @@ function Login() {
 
   const fetchCart = async (accessToken) => {
     try {
-      const res = await axios.get('http://localhost:8000/api/cart/', {
+      const res = await axios.get('http://localhost:8000/api/cart-items/', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       setCart(res.data?.items ?? []);
@@ -71,7 +71,7 @@ function Login() {
       localStorage.setItem('access', access);
       localStorage.setItem('refresh', refresh);
       await Promise.all([fetchWishlist(access), fetchCart(access)]);
-      navigate('/user');
+      window.location.href = '/user';
     } catch (err) {
       setError('Invalid login credentials');
     } finally {
