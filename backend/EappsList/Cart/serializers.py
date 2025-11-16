@@ -191,8 +191,37 @@ class CartSerializer(serializers.ModelSerializer):
 # ---------------------------
 # Wishlist Serializer
 # ---------------------------
+
+class FullProductSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    variants = ProductVariantSerializer(many=True, read_only=True)
+
+    image1 = serializers.SerializerMethodField()
+    image2 = serializers.SerializerMethodField()
+    image3 = serializers.SerializerMethodField()
+    image4 = serializers.SerializerMethodField()
+
+    current_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    previous_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+    def _abs(self, img):
+        request = self.context.get("request")
+        if img and hasattr(img, "url"):
+            return request.build_absolute_uri(img.url)
+        return None
+
+    def get_image1(self, obj): return self._abs(obj.image1)
+    def get_image2(self, obj): return self._abs(obj.image2)
+    def get_image3(self, obj): return self._abs(obj.image3)
+    def get_image4(self, obj): return self._abs(obj.image4)
+
+
 class WishlistSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    products = FullProductSerializer(many=True, read_only=True)
     product_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Product.objects.all(),
@@ -203,3 +232,4 @@ class WishlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wishlist
         fields = ['id', 'user', 'products', 'product_ids']
+

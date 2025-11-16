@@ -1,27 +1,42 @@
-import React from 'react';
+// ======================================
+// sidebarfunction.js (FULL WORKING FILE)
+// ======================================
 
-// Load products with skeleton-based delay (no spinner)
-export function loadProducts(products, currentPage, showCount, setDisplayedProducts, setLoading) {
+import React from "react";
+
+// ===========================
+// Load products with skeleton
+// ===========================
+export function loadProducts(
+  products,
+  currentPage,
+  showCount,
+  setDisplayedProducts,
+  setLoading
+) {
   setLoading(true);
+
   const startIndex = (currentPage - 1) * showCount;
   const endIndex = startIndex + showCount;
 
   setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setDisplayedProducts(products.slice(startIndex, endIndex));
     setLoading(false);
-  }, 500); // 2.5s skeleton duration
-}
-
-// Handle items per page change
-export function handleShowChange(e, setShowCount, setCurrentPage) {
-  setShowCount(parseInt(e.target.value));
-  setTimeout(() => {
-    setCurrentPage(1);
   }, 500);
 }
 
-// Handle view switch with skeleton animation
+// ===========================
+// Items per page change
+// ===========================
+export function handleShowChange(e, setShowCount, setCurrentPage) {
+  setShowCount(parseInt(e.target.value));
+  setTimeout(() => setCurrentPage(1), 500);
+}
+
+// ===========================
+// View layout switcher
+// ===========================
 export function handleViewChange(newView, view, setView, setLoading) {
   if (newView === view) return;
   setLoading(true);
@@ -29,10 +44,12 @@ export function handleViewChange(newView, view, setView, setLoading) {
   setTimeout(() => {
     setView(newView);
     setLoading(false);
-  }, 100); // simulate skeleton animation
+  }, 120);
 }
 
-// Pagination helpers
+// ===========================
+// Pagination
+// ===========================
 export function goToPreviousPage(currentPage, setCurrentPage) {
   if (currentPage > 1) setCurrentPage(currentPage - 1);
 }
@@ -41,15 +58,45 @@ export function goToNextPage(currentPage, totalPages, setCurrentPage) {
   if (currentPage < totalPages) setCurrentPage(currentPage + 1);
 }
 
-// Optional: Price filter hook (used in sidebar maybe)
-export function usePriceRangeFilter(products, setMinPrice, setMaxPrice, setSelectedMin, setSelectedMax) {
+// ===========================
+// Auto Price Range Extractor  (FIXED)
+// ===========================
+export function usePriceRangeFilter(
+  products,
+  setMinPrice,
+  setMaxPrice,
+  setSelectedMin,
+  setSelectedMax
+) {
   React.useEffect(() => {
-    const prices = products.map((p) => p.current_price);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    setMinPrice(min);
-    setMaxPrice(max);
-    setSelectedMin(min);
-    setSelectedMax(max);
+    if (!products || !products.length) return;
+
+    // Extract correct price from API:
+    const prices = products
+      .map((p) => {
+        const variantPrice =
+          p?.variants?.length ? Number(p.variants[0]?.price ?? 0) : 0;
+
+        const fallbackPrice = Number(
+          p.display_price ??
+            p.current_price ??
+            p.price ??
+            0
+        );
+
+        return variantPrice || fallbackPrice;
+      })
+      .filter((value) => value > 0);
+
+    if (prices.length > 0) {
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+
+      setMinPrice(min);
+      setMaxPrice(max);
+
+      setSelectedMin(min);
+      setSelectedMax(max);
+    }
   }, [products]);
 }

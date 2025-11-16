@@ -9,7 +9,10 @@ import { useAuth } from './shared/authContext';
 import { useWishlist } from './shared/wishlistcontext';
 import { useCart } from './shared/cartContext';
 
-const LINKEDIN_CLIENT_ID = '86tafrrdhez9do'; // Replace with real one
+const SIGNIN_BG = "https://images.unsplash.com/photo-1557682250-33bd709cbe85";
+const SIGNUP_BG = "https://images.unsplash.com/photo-1521791136064-7986c2920216";
+
+const LINKEDIN_CLIENT_ID = '86tafrrdhez9do';
 const LINKEDIN_REDIRECT_URI = 'http://localhost:3000/login';
 
 function Login() {
@@ -71,12 +74,11 @@ function Login() {
       localStorage.setItem('access', access);
       localStorage.setItem('refresh', refresh);
       await Promise.all([fetchWishlist(access), fetchCart(access)]);
-      window.location.href = '/user';
-    } catch (err) {
+      navigate('/user');
+    } catch {
       setError('Invalid login credentials');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleSignup = async (e) => {
@@ -92,11 +94,10 @@ function Login() {
         name: signupData.name,
       });
       setIsSignUp(false);
-    } catch (err) {
+    } catch {
       setError('Signup failed. Try again.');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -113,11 +114,10 @@ function Login() {
       localStorage.setItem('refresh', refresh);
       await Promise.all([fetchWishlist(access), fetchCart(access)]);
       navigate('/user');
-    } catch (err) {
+    } catch {
       setError('Google login failed');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleFacebookResponse = async (response) => {
@@ -136,17 +136,17 @@ function Login() {
       localStorage.setItem('refresh', refresh);
       await Promise.all([fetchWishlist(access), fetchCart(access)]);
       navigate('/');
-    } catch (err) {
+    } catch {
       setError('Facebook login failed');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleLinkedInLogin = () => {
-    const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(
-      LINKEDIN_REDIRECT_URI
-    )}&scope=r_liteprofile%20r_emailaddress`;
+    const authUrl =
+      `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+        LINKEDIN_REDIRECT_URI
+      )}&scope=r_liteprofile%20r_emailaddress`;
     window.location.href = authUrl;
   };
 
@@ -164,29 +164,28 @@ function Login() {
       localStorage.setItem('refresh', refresh);
       await Promise.all([fetchWishlist(access), fetchCart(access)]);
       navigate('/');
-    } catch (err) {
+    } catch {
       setError('LinkedIn login failed');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="relative w-full max-w-4xl h-[500px] bg-gray-100 rounded-xl shadow-lg overflow-hidden">
-        {/* Sign In Form */}
+    <div className="min-h-screen flex items-center justify-center px-4 dark:bg-black">
+
+      <div className="relative w-full max-w-4xl h-[550px] bg-white dark:bg-neutral-900 rounded-xl shadow-xl overflow-hidden transition-all">
+
+        {/* LEFT FORM SECTION */}
         <form
           onSubmit={handleLogin}
-          className={`absolute top-0 left-0 w-1/2 h-full p-10 transition-all duration-700 z-20 ${
-            isSignUp ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'
-          }`}
+          className={`absolute top-0 left-0 w-1/2 h-full p-10 transition-all duration-700 z-20 
+           ${isSignUp ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'}`}
         >
-          <h2 className="text-2xl font-bold mb-4">Sign in</h2>
-          <div className="flex gap-2 mb-4 items-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setError('Google login failed')}
-            />
+          <h2 className="text-2xl font-bold mb-6 dark:text-white">Sign In</h2>
+
+          {/* Social buttons */}
+          <div className="flex gap-3 mb-6">
+            <GoogleLogin onSuccess={handleGoogleSuccess} />
             <FacebookLogin
               appId="1960201038102026"
               fields="name,email,picture"
@@ -197,39 +196,39 @@ function Login() {
             />
             <SocialButton icon={<FaLinkedin />} color="#0A66C2" onClick={handleLinkedInLogin} />
           </div>
+
           <input
             type="text"
-            placeholder="Email or Username"
-            className="w-full px-4 py-2 mb-3 border rounded"
+            placeholder="Email"
+            className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
             onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
             required
           />
           <input
             type="password"
             placeholder="Password"
-            className="w-full px-4 py-2 mb-3 border rounded"
+            className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
             onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
             required
           />
+
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-          <button type="submit" className="w-full bg-green-600 text-white py-2 rounded">
+
+          <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">
             SIGN IN
           </button>
         </form>
 
-        {/* Sign Up Form */}
+        {/* SIGNUP FORM */}
         <form
           onSubmit={handleSignup}
-          className={`absolute top-0 left-1/2 w-1/2 h-full p-10 transition-all duration-700 z-20 ${
-            isSignUp ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-          }`}
+          className={`absolute top-0 left-1/2 w-1/2 h-full p-10 transition-all duration-700 z-20
+          ${isSignUp ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}
         >
-          <h2 className="text-2xl font-bold mb-4">Create Account</h2>
-          <div className="flex gap-2 mb-4 items-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setError('Google login failed')}
-            />
+          <h2 className="text-2xl font-bold mb-6 dark:text-white">Create Account</h2>
+
+          <div className="flex gap-3 mb-6">
+            <GoogleLogin onSuccess={handleGoogleSuccess} />
             <FacebookLogin
               appId="1960201038102026"
               fields="name,email,picture"
@@ -240,53 +239,57 @@ function Login() {
             />
             <SocialButton icon={<FaXTwitter />} color="black" />
           </div>
+
           <input
             type="text"
             placeholder="Name"
-            className="w-full px-4 py-2 mb-3 border rounded"
+            className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
             onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
             required
           />
+
           <input
             type="email"
             placeholder="Email"
-            className="w-full px-4 py-2 mb-3 border rounded"
+            className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
             onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
             required
           />
+
           <input
             type="password"
             placeholder="Password"
-            className="w-full px-4 py-2 mb-3 border rounded"
+            className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
             onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
             required
           />
+
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-          <button type="submit" className="w-full bg-green-600 text-white py-2 rounded">
+
+          <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">
             SIGN UP
           </button>
         </form>
 
-        {/* Right Panel */}
+        {/* RIGHT IMAGE SLIDER PANEL */}
         <div
-          className={`absolute top-0 right-0 w-1/2 h-full flex items-center justify-center text-white p-10 transition-all duration-700 bg-cover bg-center ${
-            isSignUp ? 'right-1/2' : ''
-          }`}
+          className={`absolute top-0 right-0 w-1/2 h-full flex items-center justify-center text-white p-10 
+          transition-all duration-700 bg-cover bg-center
+          ${isSignUp ? 'right-1/2' : ''}`}
           style={{
-            backgroundImage: isSignUp
-              ? "url('signin-back-image-url')"
-              : "url('signup-back-image-url')",
+            backgroundImage: `url('${isSignUp ? SIGNIN_BG : SIGNUP_BG}')`,
           }}
         >
-          <div className="bg-black bg-opacity-50 p-6 rounded text-center">
+          <div className="bg-black/50 p-6 rounded-lg text-center backdrop-blur-sm">
             <h2 className="text-2xl font-bold mb-2">
               {isSignUp ? 'Welcome Back!' : 'Hello, Friend!'}
             </h2>
             <p className="mb-6 text-sm">
               {isSignUp
-                ? 'To keep connected with us please login with your personal info'
-                : 'Enter your personal details and start your journey with us'}
+                ? 'To keep connected with us please login with your personal info.'
+                : 'Enter your personal details and start your journey.'}
             </p>
+
             <button
               onClick={() => {
                 setIsSignUp(!isSignUp);
@@ -298,12 +301,13 @@ function Login() {
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
 }
 
-// 🔘 Reusable social button
+// Social Buttons
 const SocialButton = ({ icon, color, onClick }) => (
   <button
     onClick={onClick}

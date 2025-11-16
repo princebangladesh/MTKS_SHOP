@@ -9,85 +9,111 @@ import { useWishlist } from "./wishlistcontext";
 
 function ProductLand({ product }) {
   const { addToWishlist, isInWishlist } = useWishlist();
-  const [toast, setToast] = React.useState(null);
-  const navigate = useNavigate();
   const { addToCart } = useCart();
+  const navigate = useNavigate();
+  const [toast, setToast] = React.useState(null);
 
-  const showToast = (message, name, type) => {
-    setToast({ message, name, type });
-    setTimeout(() => setToast(null), 3000);
+  const showToast = (message, title, type) => {
+    setToast({ message, title, type });
+    setTimeout(() => setToast(null), 2500);
   };
 
-  const handleNavigate = (id) => {
-    navigate(`/product/${id}`);
-  };
+  // -------------------------------
+  // ✅ Variant Fix (pick first)
+  // -------------------------------
+  const variant = product?.variants?.length ? product.variants[0] : null;
 
-  // Get first variant if available
-  const variant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+  // -------------------------------
+  // ✅ Category Fix (always name)
+  // -------------------------------
+  const categoryName =
+    product?.category_name ||
+    product?.category?.name ||
+    "Category";
 
-  // Helper to get image fallback safely
+  // -------------------------------
+  // ✅ Image Fix (variant > product > placeholder)
+  // -------------------------------
   const getDisplayImage = () => {
-  const placeholder = "https://via.placeholder.com/300x200?text=No+Image";
-  const variantImage = variant?.image;
-  const productImage = product?.image1;
+    const placeholder = "https://via.placeholder.com/300x200?text=No+Image";
 
-  if (variantImage && variantImage.trim() !== "") return variantImage;
-  if (productImage && productImage.trim() !== "") return productImage;
-  return placeholder;
-};
-
-const displayImage = getDisplayImage();
-
-// ✅ Use variant price if available, fallback to product price
-const displayPrice = variant
-  ? Number(variant.price)
-  : Number(product.current_price || 0);
-
-const displayOldPrice = variant
-  ? Number(variant.previous_price || product.previous_price || 0)
-  : Number(product.previous_price || 0);
-
-const productName = product.name || "Unnamed Product";
-
-  const handleAdd = () => {
-    let payload;
-    if (variant) {
-      payload = {
-        productId: product.id,
-        variant,
-        productData: product,
-      };
-    } else {
-      payload = { product };
-    }
-    addToCart(payload, 1);
-    showToast("Item Added to Cartlist", productName, "success");
+    return (
+      variant?.image ||
+      product?.image1 ||
+      product?.image ||
+      placeholder
+    );
   };
 
+  const displayImage = getDisplayImage();
+
+  // -------------------------------
+  // ✅ Price Fix (variant > product)
+  // -------------------------------
+  const displayPrice = Number(
+    variant?.price ??
+    product?.current_price ??
+    0
+  );
+
+  const displayOldPrice = Number(
+    variant?.previous_price ??
+    product?.previous_price ??
+    0
+  );
+
+  const productName = product?.name || "Unnamed Product";
+
+  // -------------------------------
+  // ✅ Add to Cart
+  // -------------------------------
+  const handleAdd = () => {
+    const payload = variant
+      ? { productId: product.id, variant, productData: product }
+      : { product };
+
+    addToCart(payload, 1);
+    showToast("Added to Cart", productName, "success");
+  };
+
+  // -------------------------------
+  // ✅ Add to Wishlist
+  // -------------------------------
   const handleWishlist = () => {
     if (isInWishlist(product.id)) {
-      showToast("Item already in Wishlist", productName, "info");
+      showToast("Already in Wishlist", productName, "info");
     } else {
       addToWishlist(product);
-      showToast("Item Added to Wishlist", productName, "success");
+      showToast("Added to Wishlist", productName, "success");
     }
   };
 
+  // -------------------------------
+  // UI
+  // -------------------------------
   return (
-    <div className="product-box bg-white dark:bg-black p-4 hover:shadow-xl overflow-hidden group h-full flex flex-col justify-between">
-      <div className="relative cursor-pointer h-full flex justify-center items-center overflow-hidden">
-        <div className="absolute flex flex-col top-[15%] right-[-50%] opacity-0 group-hover:right-3 group-hover:opacity-100 transition-all duration-300 z-10">
+    <div className="product-box bg-white dark:bg-black p-4 hover:shadow-xl rounded-xl overflow-hidden group flex flex-col justify-between">
+
+      {/* ---------------- Image Section ---------------- */}
+      <div className="relative cursor-pointer flex justify-center items-center overflow-hidden">
+        <div className="absolute flex flex-col top-[15%] right-[-50%] opacity-0 
+          group-hover:right-3 group-hover:opacity-100 transition-all duration-300 z-10">
+
           <button
-            className="p-4 mb-2 bg-brandGreen/90 text-white shadow hover:bg-brandGreen transition-all duration-500"
+            className="p-4 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700 transition"
             onClick={handleWishlist}
-            aria-label={`Add ${productName} to wishlist`}
           >
             <CiHeart size={24} />
           </button>
-          <button className="p-4 mb-2 bg-brandGreen/90 text-white shadow hover:bg-brandGreen transition-all duration-500">
+
+          <button className="p-4 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700 transition">
             <BiRefresh size={24} />
           </button>
-          <button className="p-4 mb-2 bg-brandGreen/90 text-white shadow hover:bg-brandGreen transition-all duration-500">
+
+          <button
+            className="p-4 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700 transition"
+            onClick={() => navigate(`/product/${product.id}`)}
+          >
             <CiSearch size={24} />
           </button>
         </div>
@@ -95,41 +121,45 @@ const productName = product.name || "Unnamed Product";
         <img
           src={displayImage}
           alt={productName}
-          className="w-full h-auto my-2 object-cover transition-all duration-500 group-hover:scale-125"
+          className="w-full h-[220px] object-cover transition-all duration-500  group-hover:scale-110 rounded-lg"
         />
       </div>
 
+      {/* ---------------- Text / Details ---------------- */}
       <div className="text py-3 pr-3">
-        <div className="flex justify-between">
-          <Link to={`/category/${product.category_name}`}>
-            <span className="text-sm text-gray-500">{product.category_name}</span>
+
+        {/* Category + Rating */}
+        <div className="flex justify-between items-center">
+          <Link to={`/category/${product.category_slug}`}>
+            <span className="text-sm text-gray-500 dark:text-gray-300">
+              {categoryName}
+            </span>
           </Link>
 
-          <p
-            className="mb-0 text-right cursor-pointer dark:text-brandWhite"
-            aria-label={`Rating: ${product.rating} out of 5`}
-          >
+          <p className="text-yellow-500 text-sm">
             {[...Array(5)].map((_, i) => (
               <span key={i}>{i < Math.floor(product.rating) ? "★" : "☆"}</span>
             ))}
           </p>
         </div>
 
+        {/* Product Name */}
         <h3
-          className="text-[16px] font-semibold leading-tight h-[2.4em] line-clamp-2 overflow-hidden dark:text-brandWhite cursor-pointer"
-          onClick={() => handleNavigate(product.id)}
-          aria-label={`View details for ${productName}`}
+          className="text-[16px] font-semibold dark:text-white leading-tight mt-2 cursor-pointer"
+          onClick={() => navigate(`/product/${product.id}`)}
         >
           {productName}
         </h3>
 
-        <div className="pricing justify-between items-center relative flex overflow-hidden">
-          <div className="mt-1 price flex flex-row items-center gap-2">
-            <span className="new-price text-brandGreen dark:text-gray-300 font-semibold">
+        {/* Price Section */}
+        <div className="pricing mt-2 flex justify-between items-center relative">
+          <div className="flex gap-2 items-center">
+            <span className="text-brandGreen dark:text-green-300 font-semibold">
               ${displayPrice.toFixed(2)}
             </span>
-            {product.previous_price && (
-              <span className="old-price text-gray-500 line-through text-sm ">
+
+            {displayOldPrice > 0 && (
+              <span className="line-through text-gray-500 text-sm">
                 ${displayOldPrice.toFixed(2)}
               </span>
             )}
@@ -137,18 +167,17 @@ const productName = product.name || "Unnamed Product";
 
           <button
             onClick={handleAdd}
-            className="absolute right-[-50%] sm:right[-20%] group-hover:right-2 transition-all duration-300 text-brandBlue dark:text-brandWhite"
-            aria-label={`Add ${productName} to cart`}
+            className="absolute right-[-50%] group-hover:right-1 transition-all duration-300 text-black dark:text-white"
           >
-            <FaCartPlus size="1.5rem" />
+            <FaCartPlus size="1.4rem" />
           </button>
         </div>
 
         {toast && (
           <Toast
             message={toast.message}
+            title={toast.title}
             type={toast.type}
-            title={toast.name}
             onClose={() => setToast(null)}
           />
         )}

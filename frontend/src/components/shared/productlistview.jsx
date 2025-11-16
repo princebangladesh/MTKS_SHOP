@@ -1,64 +1,200 @@
-import React from 'react'
-import { FaHeart, FaEye, FaRegSquare,FaCartPlus } from "react-icons/fa";
-
-import Toast from './toast';
-import { useCart } from './cartContext';
-
+import React from "react";
+import { FaCartPlus } from "react-icons/fa";
+import { CiHeart } from "react-icons/ci";
+import Toast from "./toast";
+import { useCart } from "./cartContext";
+import { useWishlist } from "./wishlistcontext";
+import { useNavigate } from "react-router-dom";
 
 function ProductListView({ product }) {
+  const navigate = useNavigate();
   const [toast, setToast] = React.useState(null);
-    
-      const showToast = (message,name,type) => {
-        setToast({ message,name, type });
-    
-        setTimeout(() => {
-          setToast(null);
-        }, 3000); // 3 seconds
-      };
-    const { addToCart,addToWishlist } = useCart();
-    const handleAdd=()=>{
-      addToCart(product)
-      showToast('Item Added', product?.name,'success');
+
+  const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist } = useWishlist();
+
+  const showToast = (message, title, type) => {
+    setToast({ message, title, type });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  /* -------------------------------
+     Variant — Prefer First Variant
+  -------------------------------- */
+  const variant = product?.variants?.length ? product.variants[0] : null;
+
+  /* -------------------------------
+     Category
+  -------------------------------- */
+  const categoryName =
+    product?.category_name ||
+    product?.category?.name ||
+    "Category";
+
+  /* -------------------------------
+     Ratings
+  -------------------------------- */
+  const rawRating = Number(product?.rating);
+  const safeRating = isNaN(rawRating) ? 0 : rawRating;
+  const starRating = Math.max(0, Math.min(5, Math.round(safeRating)));
+
+  /* -------------------------------
+     Image Fallback
+  -------------------------------- */
+  const placeholder =
+    "https://via.placeholder.com/300x200?text=No+Image";
+
+  const productImage =
+    variant?.image ||
+    product?.image1 ||
+    product?.image ||
+    placeholder;
+
+  /* -------------------------------
+     Pricing (variant > product)
+  -------------------------------- */
+  const price = Number(
+    variant?.price ??
+    product?.current_price ??
+    0
+  );
+
+  const oldPrice = Number(
+    variant?.previous_price ??
+    product?.previous_price ??
+    0
+  );
+
+  const productName = product?.name || "Unnamed Product";
+
+  /* -------------------------------
+     Add to Cart
+  -------------------------------- */
+  const handleAdd = () => {
+    const payload = variant
+      ? { productId: product.id, variant, productData: product }
+      : { product };
+
+    addToCart(payload, 1);
+    showToast("Added to Cart", productName, "success");
+  };
+
+  /* -------------------------------
+     Add to Wishlist
+  -------------------------------- */
+  const handleWishlist = () => {
+    if (isInWishlist(product.id)) {
+      showToast("Already in Wishlist", productName, "info");
+    } else {
+      addToWishlist(product);
+      showToast("Added to Wishlist", productName, "success");
     }
-    const handleWishlist = () => {
-    addToWishlist(product);
-    showToast('Item Added to Wishlist', product?.name,'success');
-  }
-  const safeRating = Math.max(0, Math.min(5, Math.round(product?.rating || 0)));
+  };
+
   return (
-    <div>
+    <div className="w-full">
       <div
+        className="bg-[#e5e8ef] dark:bg-[#1a1a1a] rounded-xl flex items-center p-5
+                   hover:shadow-lg transition-all duration-500 cursor-pointer
+                   relative group"
+        onClick={() => navigate(`/product/${product.id}`)}
+      >
 
-            className="Caro-bg text-white rounded-xl overflow-hidden hover:shadow-xl flex items-center space-x-6 p-4 group transition-all duration-500 cursor-pointer"
+        {/* ---------------- IMAGE ---------------- */}
+        <img
+          src={productImage}
+          alt={productName}
+          className="w-32 h-32 object-cover rounded-lg
+                     group-hover:scale-105 transition-all duration-500"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/product/${product.id}`);
+          }}
+        />
+
+        {/* ---------------- TEXT ---------------- */}
+        <div className="ml-6 flex-1">
+
+          {/* Category */}
+          <span className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-300">
+            {categoryName}
+          </span>
+
+          {/* Product Name */}
+          <h3
+            className="text-lg font-semibold text-brandGreen dark:text-white mt-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/product/${product.id}`);
+            }}
           >
-            <img
-              src={product?.image1}
-              alt={product?.name}
-              className='w-32 h-32 object-cover rounded group-hover:scale-125 transition-all duration-500 '
-            />
-            <div className="flex-1">
-              <span className="text-xs uppercase text-brandBlue dark:text-brandWhite">{product?.category_name}</span>
-              <h3 className="text-lg font-bold text-brandGreen dark:text-white">{product?.name}</h3>
-              <div className="flex items-center space-x-1 text-black dark:text-brandWhite text-sm">
-                {'★'.repeat(safeRating)}{'☆'.repeat(5 - safeRating)}
-                <span className="ml-1 text-black dark:text-brandWhite">({product?.rating.toFixed(1)})</span>
-              </div>
-              <div className="mt-1">
-                <span className="text-brandGreen dark:text-brandWhite font-semibold">${product?.current_price}</span>
-                <span className="line-through ml-2 text-gray-400">${product?.previous_price}</span>
-              </div>
-              <div className="flex items-center gap-2 mt-2 relative">
+            {productName}
+          </h3>
 
-                <button onClick={handleAdd} className="absolute bottom-10 group-hover:right-5 right-[-200px] bg-brandGreen text-white px-4 py-1 rounded-md text-sm font-medium 
-                 transition-all duration-500">
-                  <FaCartPlus className='my-1' size={32}/>
-                </button>
-                {toast && <Toast message={toast.message} type={toast.type} title={toast.name} onClose={()=>setToast(null)}/>}
-              </div>  
-            </div>
+          {/* Rating */}
+          <div className="flex items-center text-yellow-500 text-sm mt-1">
+            {"★".repeat(starRating)}
+            {"☆".repeat(5 - starRating)}
+            <span className="text-gray-700 dark:text-gray-300 ml-1">
+              ({safeRating.toFixed(1)})
+            </span>
           </div>
+
+          {/* Price */}
+          <div className="mt-2 flex items-center gap-3">
+            <span className="text-brandGreen dark:text-green-300 font-bold text-lg">
+              ${price.toFixed(2)}
+            </span>
+
+            {oldPrice > 0 && (
+              <span className="line-through text-gray-500 text-sm">
+                ${oldPrice.toFixed(2)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* ---------------- ACTION BUTTONS ---------------- */}
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+
+          {/* HEART / WISHLIST BUTTON */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleWishlist();
+            }}
+            className="opacity-0 group-hover:opacity-100 translate-x-10 group-hover:translate-x-0
+                       transition-all duration-500
+                       bg-[#062c30] p-3 rounded-lg shadow-md text-white flex items-center justify-center"
+          >
+            <CiHeart size={22} className="text-red-400" />
+          </button>
+
+          {/* CART BUTTON */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAdd();
+            }}
+            className="opacity-0 group-hover:opacity-100 translate-x-10 group-hover:translate-x-0
+                       transition-all duration-500
+                       bg-[#062c30] p-3 rounded-lg shadow-md text-white flex items-center justify-center"
+          >
+            <FaCartPlus size={22} />
+          </button>
+        </div>
+
+        {toast && (
+          <Toast
+            message={toast.message}
+            title={toast.title}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+      </div>
     </div>
-  )
+  );
 }
 
-export default ProductListView
+export default ProductListView;

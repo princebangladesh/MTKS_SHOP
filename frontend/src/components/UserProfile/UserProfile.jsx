@@ -1,45 +1,48 @@
 import { useState } from "react";
 
 import OrderList from "./OrderList";
-import Dashboard from "./Dashboard"; // Assuming you have this component
+import Dashboard from "./Dashboard";
 import Sidebar from "./Sidebar";
 import Profile from "./Profile";
 import ChangePasswordForm from "./change_password";
 
 export default function UserProfile() {
-  const [activeTab, setActiveTab] = useState("dashboard"); // Default tab
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-blue-100 flex">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+    <div className="
+      min-h-screen flex 
+      bg-gradient-to-br 
+      from-purple-100 via-white to-blue-100 
+      dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 
+      text-gray-900 dark:text-gray-200
+      transition-all
+    ">
+      {/* Sidebar */}
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+      />
 
+      {/* Main Content */}
       <div className="flex-1 p-8">
 
-        {/* Tab-based content rendering */}
         {activeTab === "dashboard" && (
-          <div>
-            <Dashboard activeTab={activeTab} setActiveTab={setActiveTab}/>
-          </div>
+          <Dashboard activeTab={activeTab} setActiveTab={setActiveTab} />
         )}
 
         {activeTab === "orders" && (
-          <div>
-            <OrderList />
-          </div>
+          <OrderList />
         )}
+
         {activeTab === "profile" && (
-          <div>
-            <Profile />
-          </div>
+          <Profile />
         )}
+
         {activeTab === "password" && (
-          <div>
-            <ChangePasswordForm setActiveTab={setActiveTab}/>
-          </div>
+          <ChangePasswordForm setActiveTab={setActiveTab} />
         )}
 
-
-        {/* Add more views like wishlist, profile, etc. */}
       </div>
     </div>
   );

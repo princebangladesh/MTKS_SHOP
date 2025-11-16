@@ -2,25 +2,32 @@ import { useState } from "react";
 import OrderList from "./OrderList";
 
 // Placeholder components
-const Profile = () => <div className="bg-white shadow rounded p-4">👤 Profile Info</div>;
-const Wishlist = () => <div className="bg-white shadow rounded p-4">💜 Wishlist goes here</div>;
-const BillingAddress = () => <div className="bg-white shadow rounded p-4">📍 Billing Address</div>;
-const ShippingAddress = () => <div className="bg-white shadow rounded p-4">📦 Shipping Address</div>;
-const ChangePassword = () => <div className="bg-white shadow rounded p-4">🔒 Change Password</div>;
-const Logout = () => <div className="bg-white shadow rounded p-4">🚪 Logged out</div>;
+const Profile = () => <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded p-4">👤 Profile Info</div>;
+const Wishlist = () => <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded p-4">💜 Wishlist goes here</div>;
+const BillingAddress = () => (
+  <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded p-4">📍 Billing Address</div>
+);
+const ShippingAddress = () => (
+  <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded p-4">📦 Shipping Address</div>
+);
+const ChangePassword = () => (
+  <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded p-4">🔒 Change Password</div>
+);
+const Logout = () => <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded p-4">🚪 Logged out</div>;
 
 // Reusable Card Component
 const Card = ({ icon, label, onClick }) => (
   <div
     onClick={onClick}
-    className="bg-white shadow rounded p-6 text-center hover:shadow-md transition cursor-pointer"
+    className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded p-6 text-center hover:shadow-md dark:hover:shadow-gray-700 transition cursor-pointer"
   >
     <div className="text-3xl mb-2">{icon}</div>
     <div className="font-semibold text-lg">{label}</div>
   </div>
 );
 
-export default function DashboardSummary({activeTab, setActiveTab}) {
+export default function DashboardSummary({ activeTab, setActiveTab }) {
+  const [darkMode, setDarkMode] = useState(false);
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -52,8 +59,13 @@ export default function DashboardSummary({activeTab, setActiveTab}) {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {renderActiveTab()}
+    <div className={darkMode ? "dark" : ""}>
+      <div className="max-w-5xl mx-auto px-4 py-8 bg-gray-100 dark:bg-gray-900 min-h-screen transition">
+        
+        {/* Dark mode toggle */}
+
+        {renderActiveTab()}
+      </div>
     </div>
   );
 }

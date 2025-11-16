@@ -5,7 +5,7 @@ from ..Category.models import Category, SubCategory, SubPreCategory,SubPostCateg
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ["id", "name", "slug"]
 
 class SubCategorySerializer(serializers.ModelSerializer):
       class Meta:

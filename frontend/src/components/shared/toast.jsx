@@ -1,59 +1,68 @@
-import { useEffect, useState,useRef } from 'react';
-import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { useEffect, useState, useRef } from "react";
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ExclamationTriangleIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 
-const Toast = ({ message,title, type, onClose }) => {
-  const [fadeOut, setFadeOut] = useState(false);
-  
-  const timer = useRef();
-  const cleanup = useRef();
+const Toast = ({ message, title, type = "success", onClose }) => {
+  const [visible, setVisible] = useState(false);
+  const hideTimer = useRef();
+  const removeTimer = useRef();
 
   useEffect(() => {
-    timer.current = setTimeout(() => setFadeOut(true), 3000);
-    cleanup.current = setTimeout(() => onClose(), 7000);
+    // Enter animation
+    setVisible(true);
+
+    // Start fade-out at 3 sec
+    hideTimer.current = setTimeout(() => setVisible(false), 3000);
+
+    // Remove from DOM at 4 sec
+    removeTimer.current = setTimeout(() => onClose(), 4000);
+
     return () => {
-      clearTimeout(timer.current);
-      clearTimeout(cleanup.current);
+      clearTimeout(hideTimer.current);
+      clearTimeout(removeTimer.current);
     };
   }, [onClose]);
 
-  const ManualClose=()=>{
-    clearTimeout(timer.current)
-    clearTimeout(cleanup.current)
-    onClose()
-  }
-
-  const colors = {
-    success: {
-      bg: 'bg-white',
-      border: 'border-green-500',
-      iconColor: 'text-green-500',
-    },
-    error: {
-      bg: 'bg-white',
-      border: 'border-red-500',
-      iconColor: 'text-red-500',
-    },
-    info: {
-      bg: 'bg-white',
-      border: 'border-yellow-500',
-      iconColor: 'text-yellow-500',
-    },
+  const closeInstant = () => {
+    clearTimeout(hideTimer.current);
+    clearTimeout(removeTimer.current);
+    setVisible(false);
+    setTimeout(onClose, 300);
   };
 
-  const { bg, border, iconColor } = colors[type] || colors.success;
+  // Icons based on type
+  const icons = {
+    success: <CheckCircleIcon className="h-6 w-6 text-green-500" />,
+    error: <XCircleIcon className="h-6 w-6 text-red-500" />,
+    info: <ExclamationTriangleIcon className="h-6 w-6 text-yellow-500" />,
+  };
+
+  // Border color per type
+  const borders = {
+    success: "border-green-500",
+    error: "border-red-500",
+    info: "border-yellow-500",
+  };
 
   return (
     <div
       className={`
-        fixed top-5 right-5 z-50 w-full max-w-sm shadow-lg rounded-md
-        flex items-start border-l-4 p-4 space-x-3 transition-all duration-500
-        ${bg} ${border} ${fadeOut ? 'opacity-0' : 'opacity-100'}
+        fixed top-5 right-5 z-50 w-full max-w-sm
+        bg-white shadow-lg rounded-md border-l-4 p-4 flex items-start gap-3
+        transform transition-all duration-500 ease-out
+        ${borders[type]}
+
+        ${visible
+          ? "opacity-100 translate-x-0"
+          : "opacity-0 translate-x-10"}  /* smooth animation */
       `}
     >
       {/* Icon */}
-      <div className="pt-1">
-        <CheckCircleIcon className={`h-6 w-6 ${iconColor}`} />
-      </div>
+      <div className="pt-1">{icons[type]}</div>
 
       {/* Text */}
       <div className="flex-1">
@@ -61,8 +70,11 @@ const Toast = ({ message,title, type, onClose }) => {
         <p className="text-sm text-gray-600">{message}</p>
       </div>
 
-      {/* Close button */}
-      <button onClick={ManualClose} className="text-gray-400 hover:text-gray-600">
+      {/* Close Button */}
+      <button
+        onClick={closeInstant}
+        className="text-gray-400 hover:text-gray-700 transition"
+      >
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>

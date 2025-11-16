@@ -29,9 +29,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  // ------------------------------------------------
   // Load Profile
-  // ------------------------------------------------
   useEffect(() => {
     api
       .get("profile/")
@@ -43,9 +41,7 @@ const Profile = () => {
       .catch((err) => console.error("Error loading profile:", err));
   }, []);
 
-  // ------------------------------------------------
-  // Convert profile → form fields
-  // ------------------------------------------------
+  // Parse address string → object
   const parseAddress = (addr) => {
     if (!addr) return { ...emptyAddress };
     const parts = addr.split(",");
@@ -67,21 +63,17 @@ const Profile = () => {
     nickname: data.nickname || "",
     dob: data.dob || "",
     default_address_type: data.default_address_type || "billing",
-
     billing: parseAddress(data.billing_address),
     shipping: parseAddress(data.shipping_address),
   });
 
-  // ------------------------------------------------
-  // Edit / Save handlers
-  // ------------------------------------------------
   const handleEdit = (field) => setEditingField(field);
   const handleCancel = () => setEditingField(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Address field
+    // address fields
     if (editingField?.includes("_")) {
       const [type, field] = name.split(".");
       setFormData((prev) => ({
@@ -91,9 +83,10 @@ const Profile = () => {
           [field]: value,
         },
       }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      return;
     }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const convertAddressToString = (addr) =>
@@ -124,9 +117,7 @@ const Profile = () => {
     }
   };
 
-  // ------------------------------------------------
-  // Upload Profile Picture
-  // ------------------------------------------------
+  // Upload Image
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -140,6 +131,7 @@ const Profile = () => {
       const res = await api.patch("profile/", uploadData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       setProfile(res.data);
       setUploading(false);
     } catch (err) {
@@ -150,16 +142,15 @@ const Profile = () => {
 
   if (loading)
     return (
-      <p className="text-center mt-8 text-gray-500">Loading profile...</p>
+      <p className="text-center mt-8 text-gray-500 dark:text-gray-300">
+        Loading profile...
+      </p>
     );
 
-  // ------------------------------------------------
-  // Render
-  // ------------------------------------------------
   return (
-    <div className="max-w-2xl mx-auto mt-10 bg-white p-6 rounded-xl shadow-md">
+    <div className="max-w-2xl mx-auto mt-10 bg-white dark:bg-gray-900 dark:text-gray-200 p-6 rounded-xl shadow-md transition-all">
 
-      {/* Profile Image */}
+      {/* PROFILE IMAGE */}
       <div className="flex flex-col items-center mb-6 relative group">
         <img
           src={
@@ -167,24 +158,30 @@ const Profile = () => {
               ? `http://localhost:8000${profile.profile_picture}`
               : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
           }
-          className="w-24 h-24 rounded-full border-2 object-cover border-indigo-500"
+          className="w-24 h-24 rounded-full border-2 object-cover border-indigo-500 shadow-md"
           alt="Profile"
         />
 
-        <label className="absolute bottom-1 right-[40%] bg-indigo-600 text-white rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100">
+        <label className="absolute bottom-1 right-[40%] bg-indigo-600 text-white rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100 hover:bg-indigo-700 transition">
           <input type="file" className="hidden" onChange={handleImageUpload} />
           <FiEdit2 size={16} />
         </label>
 
-        {uploading && <p className="text-sm text-gray-400">Uploading...</p>}
+        {uploading && (
+          <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+            Uploading...
+          </p>
+        )}
       </div>
 
       <h2 className="text-xl font-semibold text-center">
         {formData.first_name} {formData.last_name}
       </h2>
-      <p className="text-center text-gray-500 mb-6">@{formData.username}</p>
+      <p className="text-center text-gray-500 dark:text-gray-400 mb-6">
+        @{formData.username}
+      </p>
 
-      {/* Normal Fields */}
+      {/* USER FIELDS */}
       {[
         { label: "First Name", name: "first_name" },
         { label: "Last Name", name: "last_name" },
@@ -205,19 +202,23 @@ const Profile = () => {
         />
       ))}
 
-      {/* Address Section */}
+      {/* ADDRESS SECTIONS */}
       <h3 className="text-md font-semibold mt-6 mb-3">Address Information</h3>
 
       {["billing", "shipping"].map((type) => {
         const addr = formData[type] || emptyAddress;
 
         return (
-          <div key={type} className="border-b py-3">
+          <div
+            key={type}
+            className="border-b border-gray-300 dark:border-gray-700 py-3"
+          >
             <div className="flex justify-between">
               <p className="font-medium capitalize">{type} Address</p>
-              <div className="flex gap-3">
+
+              <div className="flex gap-3 items-center">
                 <button onClick={() => handleEdit(`${type}_address`)}>
-                  <FiEdit2 className="text-gray-500 hover:text-indigo-500" />
+                  <FiEdit2 className="text-gray-500 dark:text-gray-300 hover:text-indigo-500" />
                 </button>
 
                 <label className="flex items-center gap-1 text-sm">
@@ -248,25 +249,28 @@ const Profile = () => {
                     placeholder={f.toUpperCase()}
                     value={addr[f]}
                     onChange={handleChange}
-                    className="border w-full p-2 rounded text-sm"
+                    className="border border-gray-300 dark:border-gray-700 w-full p-2 rounded text-sm dark:bg-gray-800 dark:text-gray-200"
                   />
                 ))}
 
-                <button
-                  onClick={handleSave}
-                  className="px-3 py-1 bg-green-600 text-white rounded mt-2"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="px-3 py-1 bg-gray-400 text-white rounded mt-2 ml-2"
-                >
-                  Cancel
-                </button>
+                <div className="mt-2 flex gap-3">
+                  <button
+                    onClick={handleSave}
+                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                  >
+                    Save
+                  </button>
+
+                  <button
+                    onClick={handleCancel}
+                    className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             ) : (
-              <p className="text-gray-700 mt-2">
+              <p className="text-gray-700 dark:text-gray-300 mt-2">
                 {addr.street}, {addr.apt}, {addr.state}, {addr.zip},{" "}
                 {addr.country}
               </p>
@@ -278,9 +282,7 @@ const Profile = () => {
   );
 };
 
-// ------------------------------------------------
-// FIELD COMPONENT
-// ------------------------------------------------
+// FIELD COMPONENT (supports dark mode)
 const FieldRow = ({
   field,
   formData,
@@ -290,9 +292,9 @@ const FieldRow = ({
   onSave,
   onChange,
 }) => (
-  <div className="flex justify-between items-center border-b py-2">
+  <div className="flex justify-between items-center border-b border-gray-300 dark:border-gray-700 py-2">
     <div className="w-full">
-      <p className="text-sm text-gray-500">{field.label}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">{field.label}</p>
 
       {editingField === field.name ? (
         <input
@@ -300,10 +302,12 @@ const FieldRow = ({
           name={field.name}
           value={formData[field.name] || ""}
           onChange={onChange}
-          className="mt-1 w-full border p-2 rounded text-sm"
+          className="mt-1 w-full border border-gray-300 dark:border-gray-700 p-2 rounded text-sm dark:bg-gray-800 dark:text-gray-200"
         />
       ) : (
-        <p className="text-md font-medium">{formData[field.name] || "N/A"}</p>
+        <p className="text-md font-medium dark:text-gray-100">
+          {formData[field.name] || "N/A"}
+        </p>
       )}
     </div>
 
@@ -318,7 +322,7 @@ const FieldRow = ({
       </div>
     ) : (
       <button onClick={() => onEdit(field.name)}>
-        <FiEdit2 className="text-gray-500 hover:text-indigo-500" />
+        <FiEdit2 className="text-gray-500 dark:text-gray-300 hover:text-indigo-500" />
       </button>
     )}
   </div>

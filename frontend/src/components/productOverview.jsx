@@ -1,349 +1,372 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import ProductOverviewSkeleton from "./skeleton/prdouctOverviewSkeleton";
 import { useCart } from "./shared/cartContext";
+import { useWishlist } from "./shared/wishlistcontext";
+import Toast from "./shared/toast";
 
 function ProductOverview() {
   const { id } = useParams();
   const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist } = useWishlist();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("description");
+  const [toast, setToast] = useState(null);
 
   const [selectedColor, setSelectedColor] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(null);
   const [activeVariant, setActiveVariant] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // Zoom states
-  const imageContainerRef = useRef(null);
-  const [isHovering, setIsHovering] = useState(false);
-  const [hoverPos, setHoverPos] = useState({ x: 50, y: 50 });
-
-  // Quantity state
   const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState("description");
 
-  // Fetch product details
+  // Zoom
+  const imageRef = useRef(null);
+  const [zooming, setZooming] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+
+  // Fetch Product
   useEffect(() => {
     setLoading(true);
-    setError(null);
 
     fetch(`http://127.0.0.1:8000/productlist/${id}/`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch product");
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         setProduct(data);
 
-        if (data.variants && data.variants.length > 0) {
-          const firstVariant = data.variants[0];
-          setActiveVariant(firstVariant);
-          setSelectedColor(firstVariant?.color || null);
-          setSelectedImage(firstVariant?.image || data.image1 || null);
+        if (data.variants?.length > 0) {
+          const first = data.variants[0];
+          setActiveVariant(first);
+          setSelectedColor(first.color);
+          setSelectedImage(first.image);
         } else {
-          setActiveVariant(null);
-          setSelectedImage(data.image1 || null);
-          setSelectedColor(null);
+          setSelectedImage(data.image1);
         }
 
         setQuantity(1);
       })
-      .catch((err) => {
-        console.error("Fetch error:", err);
-        setError("Failed to load product. Please try again.");
-      })
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Update active variant when color changes
+  // Update variant on color change
   useEffect(() => {
-    if (!product || !product.variants?.length) return;
+    if (!product?.variants) return;
 
     const match = product.variants.find(
-      (v) => v?.color?.id === selectedColor?.id
+      (v) => v.color?.id === selectedColor?.id
     );
 
     if (match) {
       setActiveVariant(match);
-      setSelectedImage(match?.image || product.image1);
-    } else {
-      const firstVariant = product.variants[0];
-      setActiveVariant(firstVariant);
-      setSelectedColor(firstVariant?.color || null);
-      setSelectedImage(firstVariant?.image || product.image1);
+      setSelectedImage(match.image);
     }
+  }, [selectedColor]);
 
-    setQuantity(1);
-  }, [selectedColor, product]);
-
-  // Handle image zoom
-  const handleMouseMove = (e) => {
-    if (!imageContainerRef.current) return;
-    const { left, top, width, height } =
-      imageContainerRef.current.getBoundingClientRect();
-    const x = ((e.pageX - left - window.scrollX) / width) * 100;
-    const y = ((e.pageY - top - window.scrollY) / height) * 100;
-    setHoverPos({ x, y });
+  // Toast
+  const showToast = (message, title, type) => {
+    setToast({ message, title, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
-  // Loading / Error / Empty
+  // Add to wishlist
+  const handleWishlist = () => {
+    if (isInWishlist(product.id)) {
+      showToast("Already in wishlist", product.name, "info");
+    } else {
+      addToWishlist(product);
+      showToast("Added to wishlist", product.name, "success");
+    }
+  };
+
+  // Add to cart
+  const handleCart = () => {
+    if (!activeVariant && !product.variants?.length) {
+      addToCart({ productId: product.id, productData: product }, quantity);
+    } else {
+      addToCart(
+        {
+          productId: product.id,
+          variant: activeVariant,
+          productData: product,
+        },
+        quantity
+      );
+    }
+
+    showToast("Added to Cart", product.name, "success");
+  };
+
+  // Zoom logic
+  const handleMove = (e) => {
+    if (!imageRef.current) return;
+
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    setZoomPos({ x, y });
+  };
+
   if (loading) return <ProductOverviewSkeleton />;
-  if (error)
-    return (
-      <div className="text-center text-red-500 py-10">
-        <p>{error}</p>
-      </div>
-    );
   if (!product)
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="p-6 text-center dark:text-gray-300">
         Product not found.
       </div>
     );
 
-  // Extract variants and unique colors safely
   const variants = product.variants || [];
-  const colors = variants
-    .map((v) => v?.color)
-    .filter((color) => color && color.id)
-    .filter(
-      (color, index, self) =>
-        self.findIndex((c) => c.id === color.id) === index
-    );
 
-  // Handle thumbnail click
-  const handleThumbnailClick = (thumb) => {
-    setSelectedImage(thumb?.image);
-    setSelectedColor(thumb?.variant?.color || null);
-    setActiveVariant(thumb?.variant || null);
-    setQuantity(1);
-  };
-
-  // Add to cart
-  const handleAddToCart = () => {
-    if (!activeVariant && variants.length === 0) {
-      // Non-variant product
-      const payload = { productId: product.id, productData: product };
-      addToCart(payload, quantity);
-      return;
-    }
-
-    if (!activeVariant || activeVariant.quantity <= 0) return;
-
-    const payload = {
-      productId: product.id,
-      variant: activeVariant,
-      productData: product,
-    };
-
-    addToCart(payload, quantity);
-  };
-
-  const handleAddToWishlist = () => {
-    alert("Added to wishlist (demo)");
-  };
-
-  // Quantity controls
-  const increaseQty = () => {
-    if (quantity < (activeVariant?.quantity || product.total_stock)) {
-      setQuantity(quantity + 1);
-    }
-  };
-
-  const decreaseQty = () => {
-    if (quantity > 1) setQuantity(quantity - 1);
-  };
+  const colors = [
+    ...new Map(variants.map((v) => [v.color?.id, v.color])).values(),
+  ];
 
   const price = activeVariant?.price || product.current_price;
-  const previousPrice = activeVariant?.previous_price || product.previous_price;
+  const previousPrice =
+    activeVariant?.previous_price || product.previous_price;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row gap-12">
-        {/* Image Section with Zoom */}
-        <div className="md:w-1/2 w-full">
+    <div className="max-w-7xl mx-auto px-4 py-12 dark:bg-black dark:text-white transition">
+      {/* ========== TOAST ========== */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          title={toast.title}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      <div className="flex flex-col md:flex-row gap-16">
+        {/* ========== IMAGE ========== */}
+        <div className="md:w-1/2">
           <div
-            className="relative overflow-hidden rounded-lg border group w-[400px] h-[400px] cursor-zoom-in"
-            onMouseMove={handleMouseMove}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            ref={imageContainerRef}
+            ref={imageRef}
+            className="relative w-[420px] h-[420px] border dark:border-gray-700 rounded-lg overflow-hidden mx-auto cursor-zoom-in"
+            onMouseEnter={() => setZooming(true)}
+            onMouseLeave={() => setZooming(false)}
+            onMouseMove={handleMove}
           >
             <img
               src={selectedImage}
+              className="object-cover w-full h-full"
               alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-300"
             />
-            {isHovering && (
+
+            {zooming && (
               <div
-                className="absolute bg-white dark:bg-gray-800 inset-0 pointer-events-none"
+                className="absolute inset-0 bg-no-repeat pointer-events-none bg-white dark:bg-black"
                 style={{
                   backgroundImage: `url(${selectedImage})`,
                   backgroundSize: "200%",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: `${hoverPos.x}% ${hoverPos.y}%`,
+                  backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
                 }}
               />
             )}
           </div>
 
-          {/* Thumbnails */}
+          {/* THUMBNAILS */}
           {variants.length > 0 && (
             <div className="grid grid-cols-4 gap-3 mt-4">
-              {variants.map((variant, index) => (
+              {variants.map((v, i) => (
                 <img
-                  key={index}
-                  src={variant?.image}
-                  alt="Variant"
-                  className={`w-full h-20 object-cover border rounded cursor-pointer 
-                    ${
-                      selectedImage === variant?.image
-                        ? "border-teal-600 ring-2 ring-teal-600"
-                        : "border-gray-300"
-                    }`}
-                  onClick={() =>
-                    handleThumbnailClick({ image: variant?.image, variant })
-                  }
+                  key={i}
+                  src={v.image}
+                  className={`h-20 rounded border cursor-pointer object-cover transition
+                  ${
+                    selectedImage === v.image
+                      ? "border-teal-500 ring-2 ring-teal-500"
+                      : "border-gray-300 dark:border-gray-700"
+                  }`}
+                  onClick={() => {
+                    setActiveVariant(v);
+                    setSelectedColor(v.color);
+                    setSelectedImage(v.image);
+                  }}
                 />
               ))}
             </div>
           )}
         </div>
 
-        {/* Details Section */}
-        <div className="md:w-1/2 w-full flex flex-col justify-start space-y-5">
-          <h1 className="text-2xl font-bold">{product.name}</h1>
-          <p className="text-sm text-blue-600 font-semibold">
-            Brand: <span className="text-black">{product.brand?.name}</span>
+        {/* ========== DETAILS ========== */}
+        <div className="md:w-1/2 space-y-6">
+          <h1 className="text-3xl font-bold dark:text-white">{product.name}</h1>
+
+          {/* BRAND */}
+          <p className="text-sm dark:text-gray-300">
+            Brand:{" "}
+            <span className="font-semibold dark:text-white">
+              {product.brand?.name}
+            </span>
           </p>
-          {product.model && (
-            <p className="text-sm text-gray-600">
-              Model: <span className="text-black">{product.model}</span>
-            </p>
-          )}
+
+          {/* PRICE */}
           <div className="flex items-center gap-3">
-            <span className="text-xl font-bold text-green-700">${price}</span>
+            <span className="text-3xl font-bold text-teal-600">
+              ${price}
+            </span>
             {previousPrice && (
-              <span className="line-through text-gray-400">
+              <span className="line-through text-gray-500 dark:text-gray-400">
                 ${previousPrice}
               </span>
             )}
           </div>
 
-          {/* Color Selector */}
+          {/* COLOR PICKER */}
           {colors.length > 0 && (
             <div>
-              <h4 className="font-semibold mb-1">Color:</h4>
+              <h4 className="font-semibold mb-2 dark:text-white">Color:</h4>
               <div className="flex gap-3">
-                {colors.map((color) => (
+                {colors.map((c) => (
                   <button
-                    key={color.id}
-                    onClick={() => {
-                      setSelectedColor(color);
-                      setQuantity(1);
+                    key={c.id}
+                    onClick={() => setSelectedColor(c)}
+                    className="w-8 h-8 rounded-full border-2"
+                    style={{
+                      backgroundColor: c.colour_code,
+                      borderColor:
+                        selectedColor?.id === c.id ? "black" : "#999",
                     }}
-                    className={`w-6 h-6 rounded-full border-2 transition-transform duration-200 focus:outline-none
-                      ${
-                        selectedColor?.id === color.id
-                          ? "border-black scale-110"
-                          : "border-gray-400"
-                      }`}
-                    style={{ backgroundColor: color.colour_code }}
-                    title={color.colour_name}
                   />
                 ))}
               </div>
             </div>
           )}
 
-          {/* Quantity Selector */}
-          <div className="mt-4 flex items-center gap-4">
+          {/* QUANTITY */}
+          <div className="flex items-center gap-4">
             <button
-              onClick={decreaseQty}
-              className="px-3 py-1 border border-gray-400 rounded hover:bg-gray-200"
-              disabled={quantity <= 1}
+              className="px-3 py-1 border rounded dark:border-gray-700"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             >
               -
             </button>
+
             <input
               type="number"
               value={quantity}
+              className="w-16 text-center border dark:bg-gray-900 dark:border-gray-700 rounded"
               onChange={(e) =>
-                setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
+                setQuantity(Math.max(1, parseInt(e.target.value) || 1))
               }
-              className="w-16 text-center border rounded"
-              min="1"
-              max={activeVariant?.quantity || product.total_stock}
             />
+
             <button
-              onClick={increaseQty}
-              className="px-3 py-1 border border-gray-400 rounded hover:bg-gray-200"
-              disabled={quantity >= (activeVariant?.quantity || product.total_stock)}
+              className="px-3 py-1 border rounded dark:border-gray-700"
+              onClick={() => setQuantity((q) => q + 1)}
             >
               +
             </button>
           </div>
 
-          {/* Add to Cart / Wishlist */}
-          <div className="flex gap-4 mt-6">
+          {/* BUTTONS */}
+          <div className="flex gap-4 mt-4">
             <button
-              onClick={handleAddToCart}
-              className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition"
+              onClick={handleCart}
+              className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition"
             >
               Add to Cart
             </button>
+
             <button
-              onClick={handleAddToWishlist}
-              className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition"
+              onClick={handleWishlist}
+              className="bg-gray-300 dark:bg-gray-800 dark:text-white px-6 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-700 transition"
             >
               Add to Wishlist
             </button>
           </div>
+          <div className="mt-4 space-y-2 text-sm text-gray-600">
+            {activeVariant && (
+              <>
+                <p>
+                  <strong>SKU:</strong> {activeVariant.sku?.code || 'N/A'}
+                </p>
+                <p className={activeVariant.quantity > 0 ? 'text-green-700' : 'text-red-500'}>
+                  {activeVariant.quantity === 0
+                    ? 'Out of stock'
+                    : activeVariant.quantity < 5
+                    ? `Only ${activeVariant.quantity} left!`
+                    : `In stock: ${activeVariant.quantity}`}
+                </p>
+                {activeVariant.price && (
+                  <p>
+                    <strong>Variant Price:</strong> ${activeVariant.price}
+                  </p>
+                )}
+              </>
+            )}
+
+            {/* Warranty & Return Policy */}
+            <p>
+              <span role="img" aria-label="warranty">
+                🛡️
+              </span>{' '}
+              1 Year AL Jazeera Brand Warranty
+            </p>
+            <p>
+              <span role="img" aria-label="return">
+                🔄
+              </span>{' '}
+              30 Day Return Policy
+            </p>
+            <p>
+              <span role="img" aria-label="cash">
+                💵
+              </span>{' '}
+              Cash on Delivery available
+            </p>
+
+            {/* Availability */}
+            <p>
+              <strong>Availability:</strong> {product.availability || 'In Stock'}
+            </p>
+          </div>
         </div>
       </div>
-
-      {/* Tabs for Description / Specification */}
-      <div className="mt-8">
-        <div className="flex gap-8 border-b">
+              
+      {/* ========== TABS SECTION ========== */}
+      <div className="mt-12">
+        {/* TABS */}
+        <div className="flex gap-10 border-b dark:border-gray-700">
           <button
             onClick={() => setActiveTab("description")}
-            className={`py-2 px-6 ${
+            className={`pb-3 text-lg ${
               activeTab === "description"
-                ? "border-b-2 border-teal-600"
-                : ""
+                ? "border-b-2 border-teal-600 text-teal-600"
+                : "text-gray-500 dark:text-gray-400"
             }`}
           >
             Description
           </button>
+
           <button
             onClick={() => setActiveTab("specification")}
-            className={`py-2 px-6 ${
+            className={`pb-3 text-lg ${
               activeTab === "specification"
-                ? "border-b-2 border-teal-600"
-                : ""
+                ? "border-b-2 border-teal-600 text-teal-600"
+                : "text-gray-500 dark:text-gray-400"
             }`}
           >
             Specification
           </button>
         </div>
 
-        {activeTab === "description" && (
-          <div className="py-4">
-            {product.description || "No description available."}
-          </div>
-        )}
-        {activeTab === "specification" && (
-          <div className="py-4">
-            <ul>
+        {/* TAB CONTENT */}
+        <div className="py-8 dark:text-gray-300">
+          {activeTab === "description" && (
+            <p>{product.description || "No description available."}</p>
+          )}
+
+          {activeTab === "specification" && (
+            <ul className="space-y-2">
               {product.model && <li>Model: {product.model}</li>}
-              <li>Price: ${price}</li>
               <li>Brand: {product.brand?.name}</li>
+              <li>Price: ${price}</li>
             </ul>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

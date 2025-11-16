@@ -1,87 +1,147 @@
-import React from 'react';
-import { useCart } from './shared/cartContext';
-import { Link } from 'react-router-dom';
-import { useWishlist } from './shared/wishlistcontext';
-import Toast from './shared/toast';
+import React from "react";
+import { useCart } from "./shared/cartContext";
+import { useWishlist } from "./shared/wishlistcontext";
+import Toast from "./shared/toast";
+import { Link } from "react-router-dom";
 
 const WishlistPage = () => {
   const { addToCart } = useCart();
-  const [toast, setToast] = React.useState(null);
   const { wishlist, removeFromWishlist, loading } = useWishlist();
+
+  const [toast, setToast] = React.useState(null);
 
   const showToast = (message, name, type) => {
     setToast({ message, name, type });
-
-    setTimeout(() => {
-      setToast(null);
-    }, 3000);
+    setTimeout(() => setToast(null), 3000);
   };
 
-  const handleRemovefromWishlist = (productId) => {
-    const product = wishlist.find(item => item.id === productId);
-    if (product) {
-      showToast('Item Removed from Wishlist', product.name, 'error');
-      removeFromWishlist(productId);
+  const list = wishlist || [];
+
+  const getImage = (product) => {
+    if (product.variants?.length > 0 && product.variants[0]?.image)
+      return product.variants[0].image;
+
+    if (product.image1) return product.image1;
+
+    return "https://placehold.co/400x400?text=No+Image";
+  };
+
+  const getPrice = (product) => {
+    if (product.variants?.length > 0)
+      return Number(product.variants[0].price || 0);
+
+    return Number(product.current_price || 0);
+  };
+
+  const handleAddToCart = (product) => {
+    if (product.variants?.length > 0) {
+      addToCart(
+        {
+          productId: product.id,
+          variant: product.variants[0],
+          productData: product,
+        },
+        1
+      );
     } else {
-      console.error('Product not found');
+      addToCart({ productData: product }, 1);
     }
+
+    showToast("Added to cart", product.name, "success");
   };
+
+  const handleRemove = (id, name) => {
+    removeFromWishlist(id);
+    showToast("Removed from wishlist", name, "error");
+  };
+
+  if (loading)
+    return (
+      <p className="text-center py-10 text-gray-600 dark:text-gray-300">
+        Loading...
+      </p>
+    );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold text-center mb-8">
-        My Wishlist <span role="img" aria-label="heart">❤️</span>
+    <div className="max-w-6xl mx-auto px-4 py-10 text-gray-900 dark:text-gray-200 transition">
+
+      <h2 className="text-3xl font-bold text-center mb-8 dark:text-gray-100">
+        My Wishlist ❤️
       </h2>
 
-      {(!wishlist || wishlist.length === 0) ? (
-        <div className="text-center text-gray-500">
+      {list.length === 0 ? (
+        <div className="text-center text-gray-500 dark:text-gray-400">
           Your wishlist is empty.
-          <Link to="/shop" className="text-blue-500 underline ml-2">
+          <Link
+            to="/shop"
+            className="ml-2 text-blue-500 dark:text-blue-400 underline"
+          >
             Continue shopping
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {wishlist.map((item) => (
-            <div
-              key={item.id}
-              className="border rounded-lg p-4 shadow hover:shadow-md transition duration-300 flex flex-col items-center bg-white"
-            >
-              <img
-                src={item.image || '/fallback-image.png'}
-                alt={item.name}
-                className="w-32 h-32 object-contain mb-4"
-              />
+          {list.map((product) => {
+            const image = getImage(product);
+            const price = getPrice(product);
 
-              <h3 className="text-lg font-medium text-center">{item.name}</h3>
-              <p className="text-gray-600 mt-1 mb-4">${item.current_price}</p>
+            return (
+              <div
+                key={product.id}
+                className="
+                  border border-gray-200 dark:border-gray-700
+                  rounded-lg 
+                  bg-white dark:bg-gray-800 
+                  p-4 shadow hover:shadow-lg 
+                  dark:shadow-gray-900/40 
+                  transition
+                "
+              >
+                <img
+                  src={image}
+                  alt={product.name}
+                  className="w-full h-48 object-contain mb-3 rounded"
+                />
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    addToCart(item);
-                    showToast('Item added to Cart', item.name, 'success');
-                  }}
-                  className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded transition"
-                  disabled={loading}
-                >
-                  Add to Cart
-                </button>
+                <h3 className="text-lg font-semibold dark:text-gray-100">
+                  {product.name}
+                </h3>
 
-                <button
-                  onClick={() => handleRemovefromWishlist(item.id)}
-                  className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded transition"
-                  disabled={loading}
-                >
-                  Remove
-                </button>
+                <p className="text-brandGreen font-bold mt-1">
+                  ${price.toFixed(2)}
+                </p>
+
+                <div className="flex justify-between mt-4">
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="
+                      px-4 py-2 rounded 
+                      bg-green-600 hover:bg-green-700 
+                      text-white 
+                      transition
+                    "
+                  >
+                    Add to Cart
+                  </button>
+
+                  <button
+                    onClick={() => handleRemove(product.id, product.name)}
+                    className="
+                      px-4 py-2 rounded 
+                      bg-red-600 hover:bg-red-700 
+                      text-white 
+                      transition
+                    "
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* ✅ Toast rendered once outside buttons */}
       {toast && (
         <Toast
           message={toast.message}

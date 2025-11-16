@@ -8,6 +8,7 @@ from .serializers import CategorySerializer, SubCategorySerializer,SubPreCategor
 class CategoryViewSet(ModelViewSet):  # or ModelViewSet if you want full CRUD
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = 'slug'  
 
 class CategorySliderViewSet(ModelViewSet):  # or ModelViewSet if you want full CRUD
     queryset = Category.objects.all().filter(is_popular=True)

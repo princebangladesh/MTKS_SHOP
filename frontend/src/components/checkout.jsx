@@ -7,10 +7,9 @@ const CheckoutPage = () => {
   const { cart, subtotal, tax, total, clearCart } = useCart();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [useShipping, setUseShipping] = useState(true);
-  const [useBilling, setUseBilling] = useState(false);
+  const [step, setStep] = useState(1);
+  const [errors, setErrors] = useState({});
 
   const [userInfo, setUserInfo] = useState({
     first_name: "",
@@ -19,22 +18,16 @@ const CheckoutPage = () => {
     phone_number: "",
   });
 
-  const [shippingAddress, setShippingAddress] = useState({
+  const [shipping, setShipping] = useState({
     street: "",
     apt: "",
     state: "",
     zip: "",
   });
 
-  const [billingAddress, setBillingAddress] = useState({
-    street: "",
-    apt: "",
-    state: "",
-    zip: "",
-  });
-
-  const [errors, setErrors] = useState({});
-
+  /* --------------------------------------------------
+     FETCH PROFILE
+  -------------------------------------------------- */
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -43,119 +36,324 @@ const CheckoutPage = () => {
 
         const parseAddress = (addr) => {
           if (!addr) return { street: "", apt: "", state: "", zip: "" };
-          const parts = addr.split(",");
+          const p = addr.split(",");
           return {
-            street: parts[0]?.trim() || "",
-            apt: parts[1]?.trim() || "",
-            state: parts[2]?.trim() || "",
-            zip: parts[3]?.trim() || "",
+            street: p[0]?.trim() ?? "",
+            apt: p[1]?.trim() ?? "",
+            state: p[2]?.trim() ?? "",
+            zip: p[3]?.trim() ?? "",
           };
         };
 
         setUserInfo({
           first_name: profile.user?.first_name || "",
           last_name: profile.user?.last_name || "",
-          email: profile.user?.email || profile.email || "",
+          email: profile.user?.email || "",
           phone_number: profile.phone_number || "",
         });
 
-        setShippingAddress(parseAddress(profile.shipping_address));
-        setBillingAddress(parseAddress(profile.billing_address));
-
+        setShipping(parseAddress(profile.shipping_address));
       } catch (err) {
-        console.error("Profile fetch error:", err);
+        console.error("Fetch profile error:", err);
       }
-
       setLoading(false);
     };
 
     fetchProfile();
   }, []);
 
-  const handleInputChange = (e, type) => {
+  /* --------------------------------------------------
+     HANDLE INPUT
+  -------------------------------------------------- */
+  const input = (e, group) => {
     const { name, value } = e.target;
     setErrors((prev) => ({ ...prev, [name]: "" }));
 
-    if (type === "shipping")
-      setShippingAddress((prev) => ({ ...prev, [name]: value }));
-    else if (type === "billing")
-      setBillingAddress((prev) => ({ ...prev, [name]: value }));
+    if (!group)
+      setUserInfo((p) => ({ ...p, [name]: value }));
     else
-      setUserInfo((prev) => ({ ...prev, [name]: value }));
+      setShipping((p) => ({ ...p, [name]: value }));
   };
 
-  const safeTrim = (val) => (typeof val === "string" ? val.trim() : "");
-
+  /* --------------------------------------------------
+     VALIDATION
+     Adds red borders to empty fields
+  -------------------------------------------------- */
   const validateStep1 = () => {
-    const currentErrors = {};
-    const { first_name, last_name, email, phone_number } = userInfo;
-    const address = useShipping ? shippingAddress : billingAddress;
+    let err = {};
+    const req = (v) => v && String(v).trim() !== "";
 
-    if (!safeTrim(first_name)) currentErrors.first_name = "First name is required.";
-    if (!safeTrim(last_name)) currentErrors.last_name = "Last name is required.";
-    if (!safeTrim(email)) currentErrors.email = "Email is required.";
-    else if (!/^\S+@\S+\.\S+$/.test(email)) currentErrors.email = "Invalid email format.";
-    if (!safeTrim(phone_number)) currentErrors.phone_number = "Phone number required.";
+    if (!req(userInfo.first_name)) err.first_name = true;
+    if (!req(userInfo.last_name)) err.last_name = true;
+    if (!req(userInfo.email)) err.email = true;
+    if (!req(userInfo.phone_number)) err.phone_number = true;
 
-    if (!safeTrim(address.street)) currentErrors.street = "Street required.";
-    if (!safeTrim(address.state)) currentErrors.state = "State required.";
-    if (!safeTrim(address.zip)) currentErrors.zip = "ZIP required.";
+    if (!req(shipping.street)) err.street = true;
+    if (!req(shipping.state)) err.state = true;
+    if (!req(shipping.zip)) err.zip = true;
 
-    setErrors(currentErrors);
-    return Object.keys(currentErrors).length === 0;
+    setErrors(err);
+    return Object.keys(err).length === 0;
   };
 
-  const handleNextStep = () => {
+  const goNext = () => {
     if (validateStep1()) setStep(2);
   };
 
+  const goBack = () => setStep(1);
+
+  /* --------------------------------------------------
+     PLACE ORDER
+  -------------------------------------------------- */
   const handlePlaceOrder = async () => {
-    const finalShipping = `${shippingAddress.street}, ${shippingAddress.apt}, ${shippingAddress.state}, ${shippingAddress.zip}`;
-    const finalBilling = useBilling
-      ? `${billingAddress.street}, ${billingAddress.apt}, ${billingAddress.state}, ${billingAddress.zip}`
-      : finalShipping;
+    const makeAddress = (a) =>
+      `${a.street}, ${a.apt}, ${a.state}, ${a.zip}`;
 
     const items = cart.map((item) => ({
-      variant_id: item.variant_id ?? item.variant?.id ?? item.default_variant_id ?? null,
-      product_id: item.variant?.product?.id ?? item.product?.id ?? null,
+      variant_id:
+        item.variant_id ??
+        item.variant?.id ??
+        item.default_variant_id ??
+        null,
+      product_id:
+        item.variant?.product?.id ??
+        item.product?.id ??
+        null,
       quantity: item.quantity,
       price:
-        parseFloat(item.price) ||
         parseFloat(item.variant?.price) ||
         parseFloat(item.product?.current_price) ||
         0,
     }));
 
     const payload = {
-      shipping_address: finalShipping,
-      billing_address: finalBilling,
-      total_price: parseFloat(subtotal.toFixed(2)),
+      shipping_address: makeAddress(shipping),
+      billing_address: makeAddress(shipping),
+      total_price: subtotal,
       items,
     };
 
     try {
       const res = await api.post("/orders/", payload);
-
-      // 🔥 SAVE FULL ORDER RESPONSE
-      localStorage.setItem("lastOrder", JSON.stringify(res.data));
-
       clearCart();
-
       navigate(`/order-success/${res.data.order_id}`);
     } catch (err) {
-      console.error("Order creation failed:", err.response?.data || err.message);
+      console.error("Order failed:", err.response?.data);
       alert("Order failed!");
     }
   };
 
   if (loading)
-    return <div className="text-center py-10">Loading checkout...</div>;
+    return <div className="text-center p-10">Loading checkout...</div>;
 
+  /* --------------------------------------------------
+     UI
+  -------------------------------------------------- */
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-6 flex flex-col items-center">
-      {/* Steps + Form already from your code — NOT removed */}
-      {/* I keep your structure unchanged */}
-      {/* Only the bug fixes above were applied */}
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex justify-center py-10 px-4">
+      <div className="relative max-w-4xl w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+
+        {/* Horizontal Sliding Wrapper */}
+        <div
+          className="flex w-[200%] transition-transform duration-700"
+          style={{
+            transform: step === 1 ? "translateX(0%)" : "translateX(-50%)",
+          }}
+        >
+          {/* --------------------------------------------------
+             STEP 1 — SHIPPING FORM
+          -------------------------------------------------- */}
+          <div className="w-1/2 p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white">
+              Shipping Details
+            </h2>
+
+            {/* CONTACT NAME */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <input
+                name="first_name"
+                placeholder="First Name"
+                value={userInfo.first_name}
+                onChange={input}
+                className={`border p-2 rounded dark:bg-gray-700 dark:text-white ${
+                  errors.first_name ? "border-red-500" : ""
+                }`}
+              />
+
+              <input
+                name="last_name"
+                placeholder="Last Name"
+                value={userInfo.last_name}
+                onChange={input}
+                className={`border p-2 rounded dark:bg-gray-700 dark:text-white ${
+                  errors.last_name ? "border-red-500" : ""
+                }`}
+              />
+            </div>
+
+            {/* EMAIL */}
+            <input
+              name="email"
+              placeholder="Email"
+              value={userInfo.email}
+              onChange={input}
+              className={`border p-2 rounded w-full mb-4 dark:bg-gray-700 dark:text-white ${
+                errors.email ? "border-red-500" : ""
+              }`}
+            />
+
+            {/* PHONE */}
+            <input
+              name="phone_number"
+              placeholder="Phone Number"
+              value={userInfo.phone_number}
+              onChange={input}
+              className={`border p-2 rounded w-full mb-4 dark:bg-gray-700 dark:text-white ${
+                errors.phone_number ? "border-red-500" : ""
+              }`}
+            />
+
+            {/* SHIPPING ADDRESS */}
+            <h3 className="text-lg font-semibold mb-2 dark:text-white">
+              Shipping Address
+            </h3>
+
+            <input
+              name="street"
+              placeholder="Street Address"
+              value={shipping.street}
+              onChange={(e) => input(e, "ship")}
+              className={`border p-2 rounded w-full mb-4 dark:bg-gray-700 dark:text-white ${
+                errors.street ? "border-red-500" : ""
+              }`}
+            />
+
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <input
+                name="apt"
+                placeholder="Apt / Suite (optional)"
+                value={shipping.apt}
+                onChange={(e) => input(e, "ship")}
+                className="border p-2 rounded dark:bg-gray-700 dark:text-white"
+              />
+              <input
+                name="state"
+                placeholder="State"
+                value={shipping.state}
+                onChange={(e) => input(e, "ship")}
+                className={`border p-2 rounded dark:bg-gray-700 dark:text-white ${
+                  errors.state ? "border-red-500" : ""
+                }`}
+              />
+              <input
+                name="zip"
+                placeholder="ZIP"
+                value={shipping.zip}
+                onChange={(e) => input(e, "ship")}
+                className={`border p-2 rounded dark:bg-gray-700 dark:text-white ${
+                  errors.zip ? "border-red-500" : ""
+                }`}
+              />
+            </div>
+
+            <button
+              onClick={goNext}
+              className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
+            >
+              Continue to Review →
+            </button>
+          </div>
+
+          {/* --------------------------------------------------
+             STEP 2 — REVIEW ORDER
+          -------------------------------------------------- */}
+          <div className="w-1/2 p-8">
+            <h2 className="text-2xl font-bold mb-6 dark:text-white">
+              Review & Place Order
+            </h2>
+
+            {/* CART ITEMS */}
+            <div className="space-y-4">
+              {cart.map((item, i) => {
+                const name =
+                  item?.product?.name ||
+                  item?.variant?.product?.name ||
+                  "Product";
+
+                const image =
+                  item?.variant?.image ||
+                  item?.product?.image1 ||
+                  item?.product?.image ||
+                  "https://placehold.co/80x80?text=No+Image";
+
+                const price =
+                  parseFloat(item?.variant?.price) ||
+                  parseFloat(item?.product?.current_price) ||
+                  0;
+
+                const qty = item.quantity;
+
+                return (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center pb-4 border-b dark:border-gray-700"
+                  >
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={image}
+                        alt={name}
+                        className="w-16 h-16 rounded border dark:border-gray-700 object-cover"
+                      />
+
+                      <div>
+                        <p className="font-medium dark:text-white">{name}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">
+                          Qty: {qty}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-semibold dark:text-white">
+                        ${price.toFixed(2)}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Total: ${(price * qty).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* TOTALS */}
+            <div className="text-right mt-6 dark:text-gray-200">
+              <p>Subtotal: <strong>${subtotal.toFixed(2)}</strong></p>
+              <p>Tax (10%): <strong>${tax.toFixed(2)}</strong></p>
+              <p className="text-xl mt-2">
+                Grand Total: <strong>${total.toFixed(2)}</strong>
+              </p>
+            </div>
+
+            {/* BUTTONS */}
+            <div className="flex justify-between mt-8">
+              <button
+                onClick={goBack}
+                className="px-5 py-2 border rounded dark:text-white dark:border-gray-600"
+              >
+                ← Back
+              </button>
+
+              <button
+                onClick={handlePlaceOrder}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                Place Order
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
