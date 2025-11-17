@@ -10,7 +10,8 @@ from .views import (
     FeaturedFullViewSet,
     TrendingFullViewSet,
     BrandLandViewSet,
-    CategoryViewSet
+    CategoryViewSet,
+    SearchViewSet
 )
 
 # Initialize the router
@@ -25,6 +26,7 @@ router.register(r'tr_product_full', TrendingFullViewSet, basename='TrendingFull'
 router.register(r'brand_land', BrandLandViewSet, basename='BrandLand')
 router.register(r'brand', ProductBrandViewSet, basename='Brand')
 router.register(r'category', CategoryViewSet, basename='Category')
+router.register('search', SearchViewSet, basename='search')
 
 # Include router URLs in the urlpatterns
 urlpatterns = [

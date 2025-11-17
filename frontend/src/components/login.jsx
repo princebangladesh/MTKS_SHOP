@@ -114,6 +114,7 @@ function Login() {
       localStorage.setItem('refresh', refresh);
       await Promise.all([fetchWishlist(access), fetchCart(access)]);
       navigate('/user');
+      window.location.reload();
     } catch {
       setError('Google login failed');
     }

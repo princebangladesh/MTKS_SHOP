@@ -1,43 +1,31 @@
-// ProductDetail.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useState } from 'react';
+import ProductOverviewSkeleton from './ProductOverviewSkeleton'; // Import your skeleton component
 
 function ProductDetail({ product }) {
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [activeVariant, setActiveVariant] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState(true); // Track loading state
 
   useEffect(() => {
-    if (product.variants && product.variants.length > 0) {
-      const first = product.variants[0];
-      setActiveVariant(first);
-      setSelectedColor(first.color || null);
-      setSelectedSize(first.size || null);
-      setSelectedImage(first.image || product.image1 || null);
-    } else {
-      setSelectedImage(product.image1 || null);
+    if (product) {
+      if (product.variants && product.variants.length > 0) {
+        const first = product.variants[0];
+        setActiveVariant(first);
+        setSelectedColor(first.color || null);
+        setSelectedSize(first.size || null);
+        setSelectedImage(first.image || product.image1 || null);
+      } else {
+        setSelectedImage(product.image1 || null);
+      }
+      setLoading(false); // Set loading to false once the product data is ready
     }
   }, [product]);
 
-  useEffect(() => {
-    if (!product) return;
-
-    let match = null;
-
-    if (selectedColor && selectedSize) {
-      match = product.variants?.find(
-        (v) => v.color?.id === selectedColor.id && v.size?.ID === selectedSize.ID
-      );
-    } else if (selectedColor) {
-      match = product.variants?.find((v) => v.color?.id === selectedColor.id);
-    }
-
-    setActiveVariant(match || null);
-
-    if (match?.image) {
-      setSelectedImage(match.image);
-    }
-  }, [selectedColor, selectedSize, product]);
+  if (loading) {
+    return <ProductOverviewSkeleton />; // Show skeleton while loading
+  }
 
   const variants = product.variants || [];
   const hasColors = variants.some((v) => v.color);
@@ -80,7 +68,12 @@ function ProductDetail({ product }) {
         {/* Image Section */}
         <div className="md:w-1/2 w-full">
           <div className="border rounded overflow-hidden shadow-sm">
-            <img src={selectedImage} alt={product.name} className="w-full object-cover" />
+            <img
+              src={selectedImage}
+              alt={product.name}
+              className="w-full object-cover"
+              loading="lazy" // Lazy load the main image
+            />
           </div>
 
           {/* Thumbnails */}
@@ -97,6 +90,7 @@ function ProductDetail({ product }) {
                       : 'border-gray-300'
                   }`}
                   onClick={() => handleThumbnailClick(thumb)}
+                  loading="lazy" // Lazy load the thumbnails
                 />
               ))}
             </div>
@@ -239,7 +233,6 @@ function ProductDetail({ product }) {
           <div className="flex items-center gap-3 mt-6 text-gray-600">
             <span className="text-sm font-semibold">Share this on:</span>
             {/* (SVG icons here, you can extract to a separate component if desired) */}
-            {/* ... */}
           </div>
         </div>
       </div>

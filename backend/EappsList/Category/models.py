@@ -13,7 +13,7 @@ class Category(models.Model):
       category_in_landing_page=models.ImageField(upload_to='Category/Category-In-Landing-Page',blank=True,null=True)
       is_popular=models.BooleanField(default=False)
       popular_image=models.ImageField(upload_to='Category/Popular-Image',blank=True,null=True) 
-      
+      in_shop=models.BooleanField(default=True)
 
       def save(self, *args, **kwargs):
         if not self.slug:

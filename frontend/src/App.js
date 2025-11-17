@@ -23,7 +23,7 @@ import CheckoutPage from './components/checkout.jsx';
 import OrderSuccessPage from './components/orderSuccessPage.jsx';
 import OrderList from './components/UserProfile/OrderList.jsx';
 import OrderDetails from './components/UserProfile/orderdetails.jsx';
-
+import Shop from './components/shop.jsx';
 function App() {
   return (
     <Router>
@@ -48,6 +48,8 @@ function App() {
       <Route path="/my-orders" element={<OrderList />} />
       <Route path="/brands/:slug" element={<BrandListProduct />} />
       <Route path="/category/:slug" element={<CategoryList />} />
+      <Route path="/shop" element={<Shop />} />
+      
       </Routes>
       
 

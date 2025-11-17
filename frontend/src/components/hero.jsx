@@ -52,7 +52,7 @@ function Hero() {
 
                     {/* FIXED CATEGORY DISPLAY */}
                     <h1
-                      className="font-bold uppercase text-5xl sm:text-[80px] md:text-[60px] 
+                      className="font-bold uppercase text-5xl sm:text-[80px] md:text-[40px] 
                       lg:text-[145px] text-[#2C2C2C] dark:text-[#D7D7D7]"
                     >
                       {data.category?.name || ""}

@@ -19,6 +19,7 @@ const Cart = () => {
 
   const navigate = useNavigate();
 
+  // If cart data is still loading, show the skeleton loader
   if (loading) return <CartSkeleton />;
 
   const getImage = (item) => {
@@ -105,6 +106,7 @@ const Cart = () => {
                       src={image}
                       alt={name}
                       className="w-20 h-20 rounded-lg object-cover shadow-sm"
+                      loading="lazy"  // Added lazy loading for images
                     />
 
                     <div>

@@ -1,6 +1,7 @@
 from django.shortcuts import render
-from rest_framework import generics
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from django.db.models import Q
+from rest_framework import generics, status
+from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet, ViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -82,3 +83,57 @@ class CategoryViewSet(ReadOnlyModelViewSet):
         products = Product.objects.filter(category=category)
         serializer = ProductSerializer(products, many=True, context={"request": request})
         return Response(serializer.data)
+
+
+# -------------------------
+# SEARCH VIEWSET (NEW)
+# -------------------------
+
+class SearchViewSet(ViewSet):
+    def list(self, request):
+        query = request.GET.get("q", "").strip()
+
+        if query == "":
+            return Response([], status=status.HTTP_200_OK)
+
+        # Search in product names and tags
+        products = Product.objects.filter(
+            Q(name__icontains=query) | Q(tags__icontains=query),
+            is_active=True, display=True
+        ).distinct()[:8]
+
+        # Search in categories
+        categories = Category.objects.filter(
+            Q(name__icontains=query)
+        ).distinct()[:5]
+
+        suggestions = []
+
+        # Product suggestions
+        for p in products:
+
+            # Get Product Image
+            if p.image1:
+                img = request.build_absolute_uri(p.image1.url)
+            elif p.variants.exists() and p.variants.first().image:
+                img = request.build_absolute_uri(p.variants.first().image.url)
+            else:
+                img = None
+
+            suggestions.append({
+                "type": "product",
+                "name": p.name,
+                "slug": p.slug if hasattr(p, "slug") else p.id,
+                "image": img,
+            })
+
+        # Category suggestions
+        for c in categories:
+            suggestions.append({
+                "type": "category",
+                "name": c.name,
+                "slug": c.slug,
+                "image": None     # Category does not have image
+            })
+
+        return Response(suggestions, status=status.HTTP_200_OK)
