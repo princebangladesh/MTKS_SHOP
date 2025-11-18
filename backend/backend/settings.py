@@ -13,13 +13,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load .env file
 load_dotenv(BASE_DIR / ".env")
 
-# ------------------------------------------------------------
 # SECURITY
-# ------------------------------------------------------------
-
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
+if not SECRET_KEY:
+    raise Exception("SECRET_KEY not loaded. Check your .env location.")
+
 DEBUG = os.getenv("DEBUG", "False") == "True"
+
 
 ALLOWED_HOSTS = [
     "prince1971.pythonanywhere.com",
