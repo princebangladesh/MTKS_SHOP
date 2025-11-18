@@ -1,18 +1,1 @@
-DJANGO_SECRET_KEY='django-insecure-(-l4fo7#6ag3=89x^kl(2@1!*n)xk4o9=%a(9)3p2f2%kpcy+w'
 
-ALLOWED_HOSTS = ['prince1971.pythonanywhere.com.', 'localhost',]
-
-# Google OAuth
-GOOGLE_CLIENT_ID=766488328889-8kqb759ul62ek978a9l3t5lcqjecliqk.apps.googleusercontent.com
-GOOGLE_SECRET=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
-
-# Facebook OAuth
-FACEBOOK_CLIENT_ID=1960201038102026
-FACEBOOK_SECRET=8a884d00e74c2f3c2c903a17d88b8868
-
-# LinkedIn OAuth
-LINKEDIN_CLIENT_ID=86tafrrdhez9do
-LINKEDIN_SECRET=WPL_AP1.Zjh2LaFZuCCKLTa9.x2oriA==
-
-# Google Redirect URI
-GOOGLE_REDIRECT_URI=http://localhost:8000/auth/complete/google/
