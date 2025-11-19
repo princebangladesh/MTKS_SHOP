@@ -1,5 +1,6 @@
 """
 Django settings for backend project.
+Optimized for PythonAnywhere deployment.
 """
 
 from pathlib import Path
@@ -10,17 +11,15 @@ from datetime import timedelta
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env file
+# Load .env
 load_dotenv(BASE_DIR / ".env")
 
 # SECURITY
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-
 if not SECRET_KEY:
-    raise Exception("SECRET_KEY not loaded. Check your .env location.")
+    raise Exception("SECRET_KEY not loaded. Check .env file")
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
-
 
 ALLOWED_HOSTS = [
     "prince1971.pythonanywhere.com",
@@ -30,9 +29,10 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://prince1971.pythonanywhere.com",
-    "http://localhost:3000",
-    "http://localhost:8000",
 ]
+
+# Security for proxy/HTTPS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # ------------------------------------------------------------
 # Applications
@@ -71,7 +71,7 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -101,9 +101,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-
 # ------------------------------------------------------------
-# Database
+# Database (PythonAnywhere free tier)
 # ------------------------------------------------------------
 
 DATABASES = {
@@ -143,14 +142,13 @@ AUTHENTICATION_BACKENDS = (
 
 ACCOUNT_AUTHENTICATION_METHOD = "username"
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATED_REDIRECT_URL = "/"
 REST_USE_JWT = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 LOGIN_REDIRECT_URL = "/user"
 APPEND_SLASH = True
 
 # ------------------------------------------------------------
-# Social Login Credentials (from .env)
+# Social Login Providers
 # ------------------------------------------------------------
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -172,16 +170,8 @@ SOCIALACCOUNT_PROVIDERS = {
         "VERIFIED_EMAIL": False,
     },
     "linkedin_oauth2": {
-        "SCOPE": [
-            "r_emailaddress",
-            "r_liteprofile",
-        ],
-        "PROFILE_FIELDS": [
-            "id",
-            "first-name",
-            "last-name",
-            "email-address",
-        ],
+        "SCOPE": ["r_emailaddress", "r_liteprofile"],
+        "PROFILE_FIELDS": ["id", "first-name", "last-name", "email-address"],
         "APP": {
             "client_id": os.getenv("LINKEDIN_CLIENT_ID"),
             "secret": os.getenv("LINKEDIN_SECRET"),
@@ -190,11 +180,6 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-SOCIAL_AUTH_FACEBOOK_KEY = os.getenv("FACEBOOK_CLIENT_ID")
-SOCIAL_AUTH_FACEBOOK_SECRET = os.getenv("FACEBOOK_SECRET")
-
-SOCIAL_AUTH_GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
-
 # ------------------------------------------------------------
 # Static & Media Files
 # ------------------------------------------------------------
@@ -202,12 +187,15 @@ SOCIAL_AUTH_GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static")
-]
+# IMPORTANT: Only include if static folder exists
+if (BASE_DIR / "static").exists():
+    STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Whitenoise production storage
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 IMAGES_DIR = MEDIA_ROOT / "images"
 
 # ------------------------------------------------------------
