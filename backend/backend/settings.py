@@ -185,7 +185,7 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://prince1971.pythonanywhere.com",
+    "https://mtks-shop-rcau.vercel.app/",
     "http://localhost:3000",
 ]
 SOCIAL_AUTH_FACEBOOK_KEY = os.getenv("FACEBOOK_CLIENT_ID")
@@ -246,4 +246,4 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://mtks-shop-rcau.vercel.app/")
