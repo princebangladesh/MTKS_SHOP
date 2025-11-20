@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for backend-solitary-feather-4610 on 2025-11-21T00:43:04+06:00
+# fly.toml app configuration file generated for backend-broken-cloud-4726 on 2025-11-21T01:12:28+06:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'backend-solitary-feather-4610'
+app = 'backend-broken-cloud-4726'
 primary_region = 'sin'
 console_command = '/code/manage.py shell'
 

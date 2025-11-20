@@ -1,5 +1,5 @@
 const API = {
-  BASE_URL: "https://backend-solitary-feather-4610.fly.dev/",
+  BASE_URL: "https://backend-broken-cloud-4726.fly.dev/",
   AUTH: {
     LOGIN: "/api/token/",
     SIGNUP: "/api/auth/registration/",
