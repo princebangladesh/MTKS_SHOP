@@ -17,20 +17,21 @@ load_dotenv(BASE_DIR / ".env")
 # SECURITY
 # ------------------------------------------------------------
 
-SECRET_KEY = 'os.getenv("DJANGO_SECRET_KEY")'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True
+# DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
+    "127.0.0.1",
     "prince1971.pythonanywhere.com",
     "localhost",
-    "127.0.0.1",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
     "https://prince1971.pythonanywhere.com",
     "http://localhost:3000",
-    "http://localhost:8000",
 ]
 
 # ------------------------------------------------------------
@@ -188,7 +189,10 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     },
 }
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://prince1971.pythonanywhere.com",
+    "http://localhost:3000",
+]
 SOCIAL_AUTH_FACEBOOK_KEY = os.getenv("FACEBOOK_CLIENT_ID")
 SOCIAL_AUTH_FACEBOOK_SECRET = os.getenv("FACEBOOK_SECRET")
 
@@ -204,7 +208,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]
-
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media/"
 IMAGES_DIR = MEDIA_ROOT / "images"
