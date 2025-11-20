@@ -18,17 +18,15 @@ load_dotenv(BASE_DIR / ".env")
 # ------------------------------------------------------------
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-if not SECRET_KEY:
-    raise Exception("SECRET_KEY not loaded. Check .env file")
 
+# Allow Docker builds to run Django commands without failing
+if not SECRET_KEY:
+    SECRET_KEY = "dummy-secret-key-for-build"
 DEBUG = True
 # DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "prince1971.pythonanywhere.com",
-    "localhost",
+    "*"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
