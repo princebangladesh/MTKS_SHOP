@@ -1,12 +1,13 @@
 import React from 'react';
 import ProductList from './productlist';
+import { BASE_URL } from '../config/api';
 
 function FeaturedList() {
   const [productData, setProductData] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetch('http://127.0.0.1:8000/fr_product_full/')
+    fetch(`${BASE_URL}/fr_product_full/`)
       .then((res) => res.json())
       .then((data) => {
         setProductData(data);

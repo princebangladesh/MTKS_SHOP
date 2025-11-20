@@ -16,16 +16,11 @@ import {
 
 function ProductList({ products }) {
   /* --------------------------------------------
-     🔥 REAL PRICE EXTRACTOR FOR API FIX 
+     PRICE RANGE EXTRACTOR
   ----------------------------------------------*/
-  const prices = products.map((p) => {
-    // Prefer Variant Price
-    if (p.variants?.length > 0) {
-      return Number(p.variants[0].price);
-    }
-    // Fallback — display_price
-    return Number(p.display_price ?? 0);
-  });
+  const prices = products.map((p) =>
+    p.variants?.length ? Number(p.variants[0].price) : Number(p.display_price ?? 0)
+  );
 
   const minprice = Math.min(...prices);
   const maxprice = Math.max(...prices);
@@ -35,40 +30,60 @@ function ProductList({ products }) {
   ----------------------------------------------*/
   const [minVal, setMinVal] = useState(minprice);
   const [maxVal, setMaxVal] = useState(maxprice);
+
   const [sortOption, setSortOption] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
+
   const [showCount, setShowCount] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [view, setView] = useState("list"); // list = grid
+  const [view, setView] = useState("list"); // list view as grid in your code
   const [displayedProducts, setDisplayedProducts] = useState([]);
+  const [priceFilteredProducts, setPriceFilteredProducts] = useState([]); // holds filtered-by-price list
   const [loading, setLoading] = useState(true);
 
   const totalPages = Math.ceil(products.length / showCount);
   const isGridView = view === "list";
 
   /* --------------------------------------------
-     FILTER + SORT LOGIC
+     SYNC PRICE RANGE WHEN PRODUCTS CHANGE
+  ----------------------------------------------*/
+  useEffect(() => {
+    setMinVal(minprice);
+    setMaxVal(maxprice);
+  }, [minprice, maxprice]);
+
+  /* --------------------------------------------
+     RESET PRICE FILTER WHEN PAGE / SHOWCOUNT CHANGES
+  ----------------------------------------------*/
+  useEffect(() => {
+    setPriceFilteredProducts([]);
+  }, [currentPage, showCount, products]);
+
+  /* --------------------------------------------
+     CATEGORY + BRAND + SORT (AUTO)
+     PRICE FILTER ONLY APPLIED IF BUTTON PRESSED
   ----------------------------------------------*/
   const filteredProducts = useMemo(() => {
-    let result = displayedProducts.filter((product) => {
-      const price =
-        product.variants?.length > 0
-          ? Number(product.variants[0].price)
-          : Number(product.display_price);
+    // base list: either price-filtered or pagination base
+    let result =
+      priceFilteredProducts.length > 0
+        ? [...priceFilteredProducts]
+        : [...displayedProducts];
 
-      const matchPrice = price >= minVal && price <= maxVal;
+    // Category filter
+    if (selectedCategories.length > 0) {
+      result = result.filter((product) =>
+        selectedCategories.includes(product.category_name)
+      );
+    }
 
-      const matchCategory =
-        selectedCategories.length === 0 ||
-        selectedCategories.includes(product.category_name);
-
-      const matchBrand =
-        selectedBrands.length === 0 ||
-        selectedBrands.includes(product.brand?.name);
-
-      return matchPrice && matchCategory && matchBrand;
-    });
+    // Brand filter
+    if (selectedBrands.length > 0) {
+      result = result.filter((product) =>
+        selectedBrands.includes(product.brand?.name)
+      );
+    }
 
     // Sorting
     switch (sortOption) {
@@ -107,11 +122,10 @@ function ProductList({ products }) {
     return result;
   }, [
     displayedProducts,
+    priceFilteredProducts,
     selectedCategories,
     selectedBrands,
     sortOption,
-    minVal,
-    maxVal,
   ]);
 
   /* --------------------------------------------
@@ -140,6 +154,26 @@ function ProductList({ products }) {
   };
 
   /* --------------------------------------------
+     PRICE FILTER (ONLY WHEN BUTTON CLICKED)
+  ----------------------------------------------*/
+  const handlePriceFilter = () => {
+    setLoading(true);
+
+    setTimeout(() => {
+      const result = displayedProducts.filter((product) => {
+        const price = product.variants?.length
+          ? Number(product.variants[0].price)
+          : Number(product.display_price ?? 0);
+
+        return price >= minVal && price <= maxVal;
+      });
+
+      setPriceFilteredProducts(result);
+      setLoading(false);
+    }, 300);
+  };
+
+  /* --------------------------------------------
      UI
   ----------------------------------------------*/
   return (
@@ -157,6 +191,7 @@ function ProductList({ products }) {
         setSelectedCategories={setSelectedCategories}
         selectedBrands={selectedBrands}
         setSelectedBrands={setSelectedBrands}
+        onFilterClick={handlePriceFilter} // ✅ pass callback instead of setDisplayedProducts
       />
 
       {/* MAIN CONTENT */}

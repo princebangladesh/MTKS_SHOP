@@ -3,12 +3,7 @@ import React, { useState, useMemo } from 'react';
 
 
 function CategoryFilter() {
-      const products = [
-  { id: 1, title: 'Product 1', categories: ['Earbuds', 'Wireless'] },
-  { id: 2, title: 'Product 2', categories: ['Headphones', 'Wireless'] },
-  { id: 3, title: 'Product 3', categories: ['Earbuds'] },
-  { id: 4, title: 'Product 4', categories: ['Wired', 'Headphones'] },
-];
+
 
   const [selectedCategories, setSelectedCategories] = useState([]);
 

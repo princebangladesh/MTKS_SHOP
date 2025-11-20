@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import ProductList from './productlist';
 import ProductListSkeleton from './skeleton/productlistskeleton';
+import { BASE_URL } from '../config/api';
 
 function CategoryList() {
   const { slug } = useParams();
@@ -19,7 +20,7 @@ function CategoryList() {
 
     const fetchCategoryProducts = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/category/${slug}/products/`);
+        const response = await fetch(`${BASE_URL}/category/${slug}/products/`);
         if (!response.ok) throw new Error('Failed to fetch category products');
         const data = await response.json();
 

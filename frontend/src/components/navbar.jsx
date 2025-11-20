@@ -4,7 +4,7 @@ import { IoMdSearch } from "react-icons/io";
 import { FaCartShopping } from "react-icons/fa6";
 import { FaRegHeart, FaRegUser } from "react-icons/fa";
 import DarkModeToggle from "./darkmode";
-
+import {BASE_URL} from "../config/api";
 import { useCart } from "./shared/cartContext";
 import { useWishlist } from "./shared/wishlistcontext";
 import Sidebar from "./sidebar";
@@ -34,7 +34,7 @@ function Navbar() {
 
     const delay = setTimeout(async () => {
       const res = await fetch(
-        `http://127.0.0.1:8000/search/?q=${query}`
+        `${BASE_URL}/search/?q=${query}`
       );
       const data = await res.json();
 

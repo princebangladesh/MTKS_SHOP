@@ -1,12 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { BASE_URL } from "../config/api";
 
 export default function Shop() {
   const [categories, setCategories] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetch("http://127.0.0.1:8000/category/")
+    fetch(`${BASE_URL}/category/`)
       .then((res) => res.json())
       .then((data) => {
         const filtered = data.filter((cat) => cat.in_shop === true);

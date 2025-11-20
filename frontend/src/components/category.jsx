@@ -1,6 +1,7 @@
 import React from "react";
 import Loader from "./shared/loader";
 import { Link,useNavigate } from "react-router-dom";
+import { BASE_URL } from "../config/api";
 
 function Category() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ function Category() {
 
   React.useEffect(() => {
     // Replace this with your actual API URL
-    fetch('http://127.0.0.1:8000/category/')
+    fetch(`${BASE_URL}/category/`)
       .then(res => res.json())
       .then(data => {
         setCatData(data);

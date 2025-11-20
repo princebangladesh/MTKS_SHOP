@@ -3,6 +3,7 @@ import React from 'react'
 import './categoryslider.css';
 import Loader from "./shared/loader";
 import { Link,useNavigate } from "react-router-dom";
+import { BASE_URL } from "../config/api";
 
 
 function Categoryslider() {
@@ -55,7 +56,7 @@ function Categoryslider() {
     const [loading, setLoading] = React.useState(true);
     React.useEffect(() => {
     // Replace this with your actual API URL
-    fetch('http://127.0.0.1:8000/catslider/')
+    fetch(`${BASE_URL}/catslider/`)
       .then(res => res.json())
       .then(data => {
         setCatSliData(data);

@@ -1,7 +1,7 @@
 // Full regenerated CartContext with fixes applied
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-
+import { BASE_URL } from "../../config/api"; // Adjust the import path as needed
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
@@ -33,7 +33,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      const res = await axios.get("http://localhost:8000/api/cart-items/");
+      const res = await axios.get(`${BASE_URL}/api/cart-items/`);
 
       const normalized = res.data.items.map((item) => ({
         ...item,
@@ -103,7 +103,7 @@ export const CartProvider = ({ children }) => {
         : { product_id: productId, quantity };
 
       await axios.post(
-        "http://localhost:8000/api/cart-items/add/",
+        `${BASE_URL}/api/cart-items/add/`,
         payload
       );
 
@@ -119,7 +119,7 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = async (item) => {
     if (token) {
       try {
-        await axios.post("http://localhost:8000/api/cart-items/remove/", {
+        await axios.post(`${BASE_URL}/api/cart-items/remove/`, {
           variant_id: item.variant_id ?? undefined,
           product_id: item.variant_id ? undefined : item.product?.id,
         });
@@ -162,7 +162,7 @@ export const CartProvider = ({ children }) => {
     if (token) {
       try {
         await axios.post(
-          "http://localhost:8000/api/cart-items/update_quantity/",
+          `${BASE_URL}/api/cart-items/update_quantity/`,
           {
             variant_id: item.variant_id ?? undefined,
             product_id: item.variant_id ? undefined : item.product.id,
@@ -208,7 +208,7 @@ export const CartProvider = ({ children }) => {
   const clearCart = async () => {
     if (token) {
       try {
-        await axios.delete("http://localhost:8000/api/cart-items/clear/");
+        await axios.delete(`${BASE_URL}/api/cart-items/clear/`);
       } catch (err) {
         console.error("Clear cart error:", err.response?.data);
       }

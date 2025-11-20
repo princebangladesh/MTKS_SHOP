@@ -2,13 +2,14 @@ import React from 'react';
 import Slider from 'react-slick';
 import Button from './shared/button';
 import { useLoader } from './shared/loaderContext';
+import { BASE_URL } from '../config/api';
 
 function Hero() {
   const [CaroData, setCaroData] = React.useState([]);
   const { setLoading } = useLoader();
 
   React.useEffect(() => {
-    fetch('http://127.0.0.1:8000/carousel/')
+    fetch(`${BASE_URL}/carousel/`)
       .then(res => res.json())
       .then(data => {
         setCaroData(data);

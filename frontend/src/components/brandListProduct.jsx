@@ -4,13 +4,14 @@ import ProductList from "./productlist";
 import Loader from "./shared/loader";
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import { BASE_URL } from '../config/api';
 
 function BrandListProduct() {
   const { slug } = useParams();
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://127.0.0.1:8000/brand/${slug}/products/`)
+    axios.get(`${BASE_URL}/brand/${slug}/products/`)
       .then(res => setProducts(res.data))
       .catch(err => console.error(err));
   }, [slug]);

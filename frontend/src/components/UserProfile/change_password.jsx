@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './ChangePasswordForm.css'; // Custom styles
 import Toast from '../shared/toast';
+import { BASE_URL } from '../../config/api';
 
 const ChangePasswordForm = ({ setActiveTab }) => {
     const [currentPassword, setCurrentPassword] = useState('');
@@ -27,7 +28,7 @@ const ChangePasswordForm = ({ setActiveTab }) => {
         try {
             const token = localStorage.getItem('access');
             const response = await axios.post(
-                'http://localhost:8000/api/auth/change_password/',
+                `${BASE_URL}/api/auth/change_password/`,
                 {
                     current_password: currentPassword,
                     new_password: newPassword,

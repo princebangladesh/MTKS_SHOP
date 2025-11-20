@@ -17,7 +17,6 @@ import FeaturedList from './components/featuredlist.jsx';
 import WishlistPage from './components/wishlist.jsx';
 import BrandListProduct from './components/brandListProduct.jsx';
 import CategoryList from './components/categorylist.jsx';
-import TestGoogleLogin from './components/test.jsx';
 import UserProfile from './components/UserProfile/UserProfile.jsx';
 import CheckoutPage from './components/checkout.jsx';
 import OrderSuccessPage from './components/orderSuccessPage.jsx';
@@ -31,7 +30,6 @@ function App() {
       <Navbar/>
       <Routes>
       <Route path="" element={<Home />} />
-      <Route path="/test" element={< TestGoogleLogin/>} />
       <Route path="/productlist" element={<ProductList />} />
       <Route path="/about" element={<About />} />
       <Route path="/product/:id" element={<ProductOverView />} />

@@ -4,6 +4,7 @@ import ProductOverviewSkeleton from "./skeleton/prdouctOverviewSkeleton";
 import { useCart } from "./shared/cartContext";
 import { useWishlist } from "./shared/wishlistcontext";
 import Toast from "./shared/toast";
+import { BASE_URL } from "../config/api";
 
 function ProductOverview() {
   const { id } = useParams();
@@ -30,7 +31,7 @@ function ProductOverview() {
   useEffect(() => {
     setLoading(true);
 
-    fetch(`http://127.0.0.1:8000/productlist/${id}/`)
+    fetch(`${BASE_URL}/productlist/${id}/`)
       .then((res) => res.json())
       .then((data) => {
         setProduct(data);

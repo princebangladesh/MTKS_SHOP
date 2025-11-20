@@ -1,12 +1,13 @@
 import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
+import { BASE_URL } from '../../config/api';
 
 export default function GoogleAuth() {
   const handleSuccess = async (credentialResponse) => {
     const { credential } = credentialResponse;
 
     try {
-      const res = await axios.post('http://localhost:8000/api/auth/social/login/', {
+      const res = await axios.post(`${BASE_URL}/api/auth/social/login/`, {
         provider: 'google',
         access_token: credential,
       });

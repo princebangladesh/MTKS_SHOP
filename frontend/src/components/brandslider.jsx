@@ -4,6 +4,7 @@ import { SiXiaomi,SiSamsung,SiBose,SiHp,SiDell,SiSandisk,SiSony,SiHuawei, SiAppl
 import { useLoader } from "./shared/loaderContext";
 import { Link } from "react-router-dom";
 import { getIconByName } from './utils/getIconByName';
+import { BASE_URL } from "../config/api";
 
 
 
@@ -12,7 +13,7 @@ const BrandSlider = () => {
   const { loading, setLoading } = useLoader();
   React.useEffect(() => {
     // Replace this with your actual API URL
-    fetch('http://127.0.0.1:8000/brand_land/')
+    fetch(`${BASE_URL}/brand_land/`)
       .then(res => res.json())
       .then(data => {
         setBrandData(data);

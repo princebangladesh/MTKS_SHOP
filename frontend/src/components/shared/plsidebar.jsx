@@ -7,7 +7,6 @@ function PlSidebar({
   setSelectedCategories,
   selectedBrands,
   setSelectedBrands,
-  setDisplayedProducts,
   minprice,
   maxprice,
   minVal,
@@ -15,11 +14,12 @@ function PlSidebar({
   setMinVal,
   setMaxVal,
   step = 1,
+  onFilterClick, // ✅ callback from parent
 }) {
   const { setLoading } = useLoader();
 
   /* -------------------------------------------------------------
-     PRICE RANGE HANDLERS
+     PRICE RANGE HANDLERS (ONLY UPDATE VALUES)
   ------------------------------------------------------------- */
 
   const handleMinChange = (e) => {
@@ -33,23 +33,13 @@ function PlSidebar({
   };
 
   /* -------------------------------------------------------------
-     APPLY PRICE FILTER
+     APPLY PRICE FILTER (BUTTON → PARENT CALLBACK)
   ------------------------------------------------------------- */
   const handleFilterClick = () => {
     setLoading(true);
-
-    setTimeout(() => {
-      const filtered = products.filter((product) => {
-        const price = product.variants?.length
-          ? Number(product.variants[0].price)
-          : Number(product.display_price ?? 0);
-
-        return price >= minVal && price <= maxVal;
-      });
-
-      setDisplayedProducts(filtered);
-      setLoading(false);
-    }, 300);
+    // parent does actual filtering
+    onFilterClick && onFilterClick();
+    setTimeout(() => setLoading(false), 300);
   };
 
   /* -------------------------------------------------------------
@@ -73,7 +63,6 @@ function PlSidebar({
 
   /* -------------------------------------------------------------
      BRAND LIST (Extract unique)
-     FIXED: MUST READ p.brand?.name
   ------------------------------------------------------------- */
   const uniqueBrands = useMemo(() => {
     return [
@@ -99,7 +88,6 @@ function PlSidebar({
 
   return (
     <aside className="w-64 bg-white dark:bg-black p-4 shadow-lg hidden md:block">
-
       {/* CATEGORIES */}
       <div className="mb-6 border-b pb-6">
         <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">

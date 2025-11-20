@@ -3,6 +3,7 @@ import './featured.css'
 import ProductLand from './shared/lanproduct';
 import { useLoader } from './shared/loaderContext';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../config/api';
 
 
 function Featured() {
@@ -14,7 +15,7 @@ function Featured() {
   const { setLoading } = useLoader();
     React.useEffect(() => {
     // Replace this with your actual API URL
-    fetch('http://127.0.0.1:8000/fr_product/')
+    fetch(`${BASE_URL}/fr_product/`)
       .then(res => res.json())
       .then(data => {
         setProductData(data);

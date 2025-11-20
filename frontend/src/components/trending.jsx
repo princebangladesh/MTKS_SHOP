@@ -3,6 +3,7 @@ import { FaCartPlus } from "react-icons/fa";
 import ProductLand from './shared/lanproduct';
 import { Link,useNavigate } from 'react-router-dom';
 import { useLoader } from './shared/loaderContext';
+import { BASE_URL } from '../config/api';
 
 function Trending() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const [ProductData, setProductData] = React.useState([]);
   const { setLoading } = useLoader();
     React.useEffect(() => {
     // Replace this with your actual API URL
-    fetch('http://127.0.0.1:8000/tr_product/')
+    fetch(`${BASE_URL}/tr_product/`)
       .then(res => res.json())
       .then(data => {
         setProductData(data);
