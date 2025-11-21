@@ -19,7 +19,6 @@ const Cart = () => {
 
   const navigate = useNavigate();
 
-  // If cart data is still loading, show the skeleton loader
   if (loading) return <CartSkeleton />;
 
   const getImage = (item) => {
@@ -43,7 +42,7 @@ const Cart = () => {
   };
 
   return (
-    <div className="min-h-screen px-6 py-8 bg-gray-100 dark:bg-black transition">
+    <div className="min-h-screen px-4 py-6 bg-gray-100 dark:bg-black transition">
       <div className="max-w-5xl mx-auto bg-white dark:bg-[#111] dark:text-gray-200 rounded-xl shadow-md p-6 transition">
 
         {/* HEADER */}
@@ -69,15 +68,15 @@ const Cart = () => {
           </p>
         ) : (
           <>
-            {/* TABLE HEADER */}
-            <div className="grid grid-cols-6 border-b pb-2 font-semibold text-gray-600 dark:text-gray-300 dark:border-gray-700">
+            {/* DESKTOP TABLE (hidden on mobile) */}
+            <div className="hidden md:grid grid-cols-6 border-b pb-2 font-semibold text-gray-600 dark:text-gray-300 dark:border-gray-700">
               <span className="col-span-3">Item</span>
               <span>Price</span>
               <span>Qty</span>
               <span className="text-right">Total</span>
             </div>
 
-            {/* CART ITEMS */}
+            {/* ITEMS */}
             {cart.map((item, index) => {
               const price =
                 parseFloat(item?.variant?.price) ||
@@ -98,19 +97,22 @@ const Cart = () => {
               return (
                 <div
                   key={itemId}
-                  className="grid grid-cols-6 gap-4 py-4 border-b dark:border-gray-700 transition"
+                  className="
+                    border-b dark:border-gray-700 py-4 transition
+                    md:grid md:grid-cols-6 md:gap-4
+                  "
                 >
-                  {/* IMAGE + TITLE */}
-                  <div className="col-span-3 flex items-center gap-4">
+
+                  {/* DESKTOP LAYOUT */}
+                  <div className="hidden md:flex md:col-span-3 items-center gap-4">
                     <img
                       src={image}
                       alt={name}
                       className="w-20 h-20 rounded-lg object-cover shadow-sm"
-                      loading="lazy"  // Added lazy loading for images
                     />
-
                     <div>
                       <h4 className="font-semibold">{name}</h4>
+
                       {(color || size) && (
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           {color && `Color: ${color}`}
@@ -121,36 +123,87 @@ const Cart = () => {
                     </div>
                   </div>
 
-                  {/* PRICE */}
-                  <div className="flex items-center">
-                    <span className="text-gray-700 dark:text-gray-300">
-                      ${price.toFixed(2)}
-                    </span>
+                  {/* MOBILE CARD (FULL WIDTH BLOCK) */}
+                  <div className="md:hidden bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-4">
+                    <img
+                      src={image}
+                      className="w-full h-40 object-cover rounded-lg"
+                      alt={name}
+                    />
+
+                    <h4 className="mt-3 text-lg font-bold">{name}</h4>
+
+                    {(color || size) && (
+                      <p className="text-sm text-gray-400 mb-2">
+                        {color && `Color: ${color}`}
+                        {color && size && " | "}
+                        {size && `Size: ${size}`}
+                      </p>
+                    )}
+
+                    <p className="font-semibold text-gray-800 dark:text-gray-200">
+                      Price: ${price.toFixed(2)}
+                    </p>
+
+                    {/* QTY BUTTONS */}
+                    <div className="flex items-center gap-3 my-3">
+                      <button
+                        onClick={() => decreaseQty(itemId)}
+                        className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded"
+                      >
+                        −
+                      </button>
+                      <span className="font-bold">{item.quantity}</span>
+                      <button
+                        onClick={() => increaseQty(itemId)}
+                        className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    {/* TOTAL + DELETE */}
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold">
+                        Total: ${(price * item.quantity).toFixed(2)}
+                      </p>
+
+                      <button
+                        onClick={() => removeFromCart(item)}
+                        className="text-red-600 text-xl"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* QUANTITY */}
-                  <div className="flex items-center gap-2">
+                  {/* DESKTOP PRICE */}
+                  <div className="hidden md:flex items-center">
+                    ${price.toFixed(2)}
+                  </div>
+
+                  {/* DESKTOP QUANTITY */}
+                  <div className="hidden md:flex items-center gap-2">
                     <button
                       onClick={() => decreaseQty(itemId)}
-                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded"
                     >
                       −
                     </button>
                     <span className="font-semibold">{item.quantity}</span>
                     <button
                       onClick={() => increaseQty(itemId)}
-                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded"
                     >
                       +
                     </button>
                   </div>
 
-                  {/* TOTAL + DELETE */}
-                  <div className="flex items-center justify-end gap-3">
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                  {/* DESKTOP TOTAL */}
+                  <div className="hidden md:flex justify-end items-center gap-3">
+                    <span className="font-semibold">
                       ${(price * item.quantity).toFixed(2)}
                     </span>
-
                     <button
                       onClick={() => removeFromCart(item)}
                       className="text-red-600 hover:text-red-800 dark:hover:text-red-400 transition"
@@ -158,6 +211,7 @@ const Cart = () => {
                       <FaTrash />
                     </button>
                   </div>
+
                 </div>
               );
             })}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { BASE_URL } from "../config/api";
 
 function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
   const [Dropdown, setDropdown] = useState(false);
@@ -8,7 +9,7 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const response = await fetch("http://127.0.0.1:8000/category/");
+      const response = await fetch(`${BASE_URL}/category/`);
       const data = await response.json();
       setCategories(data);
     };
@@ -48,7 +49,7 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
         className={`${
           ActiveSide ? "-translate-x-full" : "translate-x-0"
         } fixed top-0 left-0 bottom-0 z-50
-          w-64 transition-transform duration-300 bg-brandWhite dark:bg-neutral-900 
+          w-64 transition-transform duration-300 Caro-bg 
           border-r border-gray-200 dark:border-neutral-700`}
         role="dialog"
         tabIndex="-1"
@@ -101,7 +102,7 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                     <rect x="14" y="12" width="7" height="9"></rect>
                     <rect x="3" y="14" width="7" height="7"></rect>
                   </svg>
-                  Dashboard
+                  Home
                 </Link>
               </li>
 

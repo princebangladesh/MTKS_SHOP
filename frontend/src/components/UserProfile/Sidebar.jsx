@@ -34,6 +34,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   return (
     <div
       className="
+        hidden md:block          /* 👈 Hides sidebar in mobile */
         w-64 p-6 shadow-md 
         bg-white dark:bg-gray-900 
         text-gray-900 dark:text-gray-200 

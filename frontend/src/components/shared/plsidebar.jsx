@@ -14,13 +14,11 @@ function PlSidebar({
   setMinVal,
   setMaxVal,
   step = 1,
-  onFilterClick, // ✅ callback from parent
+  onFilterClick,
+  isMobile = false,
+  closeMobileSidebar = null,
 }) {
   const { setLoading } = useLoader();
-
-  /* -------------------------------------------------------------
-     PRICE RANGE HANDLERS (ONLY UPDATE VALUES)
-  ------------------------------------------------------------- */
 
   const handleMinChange = (e) => {
     const value = Math.min(Number(e.target.value), maxVal - step);
@@ -32,19 +30,12 @@ function PlSidebar({
     setMaxVal(value);
   };
 
-  /* -------------------------------------------------------------
-     APPLY PRICE FILTER (BUTTON → PARENT CALLBACK)
-  ------------------------------------------------------------- */
   const handleFilterClick = () => {
     setLoading(true);
-    // parent does actual filtering
     onFilterClick && onFilterClick();
     setTimeout(() => setLoading(false), 300);
   };
 
-  /* -------------------------------------------------------------
-     CATEGORY LIST (Extract unique)
-  ------------------------------------------------------------- */
   const uniqueCategories = useMemo(() => {
     return [...new Set(products.map((p) => p.category_name))];
   }, [products]);
@@ -61,9 +52,6 @@ function PlSidebar({
     }, 200);
   };
 
-  /* -------------------------------------------------------------
-     BRAND LIST (Extract unique)
-  ------------------------------------------------------------- */
   const uniqueBrands = useMemo(() => {
     return [
       ...new Set(
@@ -87,116 +75,133 @@ function PlSidebar({
   };
 
   return (
-    <aside className="w-64 bg-white dark:bg-black p-4 shadow-lg hidden md:block">
-      {/* CATEGORIES */}
+    <aside
+      className={`
+        w-64 bg-white dark:bg-black p-4 shadow-lg 
+        h-full overflow-y-auto z-50
+
+        ${isMobile ? "block" : "hidden md:block"}
+      `}
+    >
+      {/* Close button for mobile */}
+      {isMobile && closeMobileSidebar && (
+        <button
+          onClick={closeMobileSidebar}
+          className="w-full bg-red-600 text-white py-2 rounded-lg mb-4 font-bold"
+        >
+          ✕ Close Filters
+        </button>
+      )}
+
+      {/* Categories */}
       <div className="mb-6 border-b pb-6">
-        <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">
+        <h3 className="font-semibold mb-3 text-gray-800 dark:text-gray-200">
           Categories
         </h3>
 
         {uniqueCategories.map((cat, index) => (
-          <div key={index} className="space-y-2">
-            <label className="flex items-center space-x-2 dark:text-gray-200">
-              <input
-                type="checkbox"
-                checked={selectedCategories.includes(cat)}
-                onChange={() => handleCategoryChange(cat)}
-                className="form-checkbox accent-brandGreen dark:accent-brandWhite"
-              />
-              <span>{cat}</span>
-            </label>
-          </div>
+          <label
+            key={index}
+            className="flex items-center space-x-2 mb-2 dark:text-gray-200"
+          >
+            <input
+              type="checkbox"
+              checked={selectedCategories.includes(cat)}
+              onChange={() => handleCategoryChange(cat)}
+              className="form-checkbox accent-brandGreen"
+            />
+            <span>{cat}</span>
+          </label>
         ))}
       </div>
 
-      {/* PRICE SLIDER */}
+      {/* Price Slider */}
       <div className="mb-6 border-b pb-6">
-        <h3 className="font-semibold mb-2 text-BrandGreen dark:text-brandWhite">
-          Price Slider
+        <h3 className="font-semibold mb-3 text-gray-800 dark:text-gray-200">
+          Price Range
         </h3>
 
-        <div className="w-full max-w-md mx-auto py-2">
-          <div className="mb-4 text-center text-lg font-semibold dark:text-brandWhite">
-            ${minVal} - ${maxVal}
-          </div>
+        <p className="text-sm font-semibold dark:text-white mb-2">
+          ${minVal} – ${maxVal}
+        </p>
 
-          <div className="relative h-6">
-            <div className="absolute inset-0 bg-gray-300 rounded-full h-1.5" />
+        <div className="relative h-6 my-4">
+          <div className="absolute inset-0 h-1.5 bg-gray-300 rounded-full"></div>
 
-            <div
-              className="absolute bg-brandGreen h-2.5 rounded-full"
-              style={{
-                left: `${((minVal - minprice) / (maxprice - minprice)) * 100}%`,
-                right: `${
-                  100 -
-                  ((maxVal - minprice) / (maxprice - minprice)) * 100
-                }%`,
-              }}
-            />
+          <div
+            className="absolute h-2 bg-brandGreen rounded-full"
+            style={{
+              left: `${((minVal - minprice) / (maxprice - minprice)) * 100}%`,
+              right: `${
+                100 - ((maxVal - minprice) / (maxprice - minprice)) * 100
+              }%`,
+            }}
+          ></div>
 
-            <input
-              type="range"
-              min={minprice}
-              max={maxprice}
-              step={step}
-              value={minVal}
-              onChange={handleMinChange}
-              className="absolute w-full h-6 bg-transparent appearance-none pointer-events-none"
-              style={{ zIndex: minVal > maxVal - 100 ? 5 : 3 }}
-            />
+          {/* Min */}
+          <input
+            type="range"
+            min={minprice}
+            max={maxprice}
+            value={minVal}
+            step={step}
+            onChange={handleMinChange}
+            className="absolute w-full h-6 appearance-none bg-transparent pointer-events-none"
+            style={{ zIndex: 10 }}
+          />
 
-            <input
-              type="range"
-              min={minprice}
-              max={maxprice}
-              step={step}
-              value={maxVal}
-              onChange={handleMaxChange}
-              className="absolute w-full h-6 bg-transparent appearance-none pointer-events-none"
-            />
+          {/* Max */}
+          <input
+            type="range"
+            min={minprice}
+            max={maxprice}
+            value={maxVal}
+            step={step}
+            onChange={handleMaxChange}
+            className="absolute w-full h-6 appearance-none bg-transparent pointer-events-none"
+          />
 
-            <style>{`
-              input[type="range"]::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                margin-top: -12px;
-                height: 16px;
-                width: 16px;
-                background: #021e0fff;
-                border-radius: 50%;
-                cursor: pointer;
-                pointer-events: all;
-                z-index: 10;
-              }
-            `}</style>
-          </div>
+          <style>{`
+          input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            background: #062c30;
+            border-radius: 50%;
+            margin-top: -12px;
+            cursor: pointer;
+            pointer-events: all;
+          }
+        `}</style>
         </div>
 
         <button
-          className="hovTransition text-sm px-4 py-1"
           onClick={handleFilterClick}
+          className="bg-brandGreen text-white w-full py-2 rounded-lg font-semibold"
         >
-          Filter
+          Apply Filters
         </button>
       </div>
 
-      {/* BRAND FILTER */}
-      <div className="mb-6 border-b pb-6">
-        <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">
-          Brand
+      {/* Brands */}
+      <div className="mb-6 pb-6">
+        <h3 className="font-semibold mb-3 text-gray-800 dark:text-gray-200">
+          Brands
         </h3>
 
         {uniqueBrands.map((brand, index) => (
-          <div key={index} className="space-y-2">
-            <label className="flex items-center space-x-2 dark:text-gray-200">
-              <input
-                type="checkbox"
-                checked={selectedBrands.includes(brand)}
-                onChange={() => handleBrandChange(brand)}
-                className="form-checkbox accent-brandGreen dark:accent-brandWhite"
-              />
-              <span>{brand}</span>
-            </label>
-          </div>
+          <label
+            key={index}
+            className="flex items-center space-x-2 mb-2 dark:text-gray-200"
+          >
+            <input
+              type="checkbox"
+              checked={selectedBrands.includes(brand)}
+              onChange={() => handleBrandChange(brand)}
+              className="form-checkbox accent-brandGreen"
+            />
+            <span>{brand}</span>
+          </label>
         ))}
       </div>
     </aside>

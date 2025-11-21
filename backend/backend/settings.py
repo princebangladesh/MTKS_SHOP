@@ -1,6 +1,6 @@
 """
 Django settings for backend project.
-Optimized for Fly.io deployment + Vercel frontend.
+Optimized for PythonAnywhere deployment.
 """
 
 from pathlib import Path
@@ -14,8 +14,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load .env
 load_dotenv(BASE_DIR / ".env")
 
-
-# ------------------------------------------------------------
 # SECURITY
 # ------------------------------------------------------------
 
@@ -24,38 +22,21 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # Allow Docker builds to run Django commands without failing
 if not SECRET_KEY:
     SECRET_KEY = "dummy-secret-key-for-build"
+DEBUG = True
+# DEBUG = os.getenv("DEBUG", "False") == "True"
 
-DEBUG = True  # Change to False for production
+ALLOWED_HOSTS = [
+    "*"
+]
 
-ALLOWED_HOSTS = ["*"]
-
-
-# Where your frontend is deployed
-FRONTEND_ORIGIN = "https://mtks-shop-rcau.vercel.app"
-
-# ------------------------------------------------------------
-# CSRF & CORS
-# ------------------------------------------------------------
-
-# ❗ Must NOT include trailing slash
 CSRF_TRUSTED_ORIGINS = [
-    "https://mtks-shop-rcau.vercel.app",
-    "https://backend-solitary-feather-4610.fly.dev",
+    "http://localhost:8000",
+    "https://prince1971.pythonanywhere.com",
     "http://localhost:3000",
 ]
 
-CORS_ALLOW_CREDENTIALS = True
-
-# Allow ONLY your frontend (recommended)
-CORS_ALLOWED_ORIGINS = [
-    "https://mtks-shop-rcau.vercel.app",
-    "http://localhost:3000",
-]
-
-# Security for Fly.io
+# Security for proxy/HTTPS
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = False
-
 
 # ------------------------------------------------------------
 # Applications
@@ -105,9 +86,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-
 ROOT_URLCONF = "backend.urls"
-
 
 TEMPLATES = [
     {
@@ -126,18 +105,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-
 # ------------------------------------------------------------
-# DATABASE — Fly.io SQLite Volume
+# Database (PythonAnywhere free tier)
 # ------------------------------------------------------------
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "/data/db.sqlite3",   # ❗ Production DB location
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
 
 # ------------------------------------------------------------
 # REST Framework & JWT
@@ -158,7 +135,6 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
-
 # ------------------------------------------------------------
 # Authentication
 # ------------------------------------------------------------
@@ -174,7 +150,6 @@ REST_USE_JWT = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 LOGIN_REDIRECT_URL = "/user"
 APPEND_SLASH = True
-
 
 # ------------------------------------------------------------
 # Social Login Providers
@@ -209,10 +184,14 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://prince1971.pythonanywhere.com",
+    "http://localhost:3000",
+]
 SOCIAL_AUTH_FACEBOOK_KEY = os.getenv("FACEBOOK_CLIENT_ID")
 SOCIAL_AUTH_FACEBOOK_SECRET = os.getenv("FACEBOOK_SECRET")
-SOCIAL_AUTH_GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 
+SOCIAL_AUTH_GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 
 # ------------------------------------------------------------
 # Static & Media Files
@@ -221,11 +200,30 @@ SOCIAL_AUTH_GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static")
+]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# IMPORTANT: Only include if static folder exists
+if (BASE_DIR / "static").exists():
+    STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Whitenoise production storage
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+IMAGES_DIR = MEDIA_ROOT / "images"
 
+# ------------------------------------------------------------
+# CORS
+# ------------------------------------------------------------
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
 
 # ------------------------------------------------------------
 # Email
@@ -238,7 +236,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-
 # ------------------------------------------------------------
 # Other
 # ------------------------------------------------------------
@@ -249,4 +246,4 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-FRONTEND_URL = "https://mtks-shop-rcau.vercel.app"
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

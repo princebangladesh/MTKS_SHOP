@@ -1,3 +1,28 @@
 .catgory-slider:hover img{
       transform: scale(1.3);
 }
+@media (max-width: 480px) {
+  .catgory-slider {
+    width: 100px !important;
+    height: 100px !important;
+  }
+}
+
+/* Remove arrows completely */
+.slick-prev,
+.slick-next {
+  display: none !important;
+}
+
+/* Remove empty slick arrow containers */
+.slick-prev:before,
+.slick-next:before {
+  display: none !important;
+}
+
+/* Prevent overflow from slick track */
+.slick-slider,
+.slick-list,
+.slick-track {
+  overflow: hidden !important;
+}

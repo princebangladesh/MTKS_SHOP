@@ -12,13 +12,9 @@ const Toast = ({ message, title, type = "success", onClose }) => {
   const removeTimer = useRef();
 
   useEffect(() => {
-    // Enter animation
     setVisible(true);
 
-    // Start fade-out at 3 sec
     hideTimer.current = setTimeout(() => setVisible(false), 3000);
-
-    // Remove from DOM at 4 sec
     removeTimer.current = setTimeout(() => onClose(), 4000);
 
     return () => {
@@ -34,14 +30,12 @@ const Toast = ({ message, title, type = "success", onClose }) => {
     setTimeout(onClose, 300);
   };
 
-  // Icons based on type
   const icons = {
     success: <CheckCircleIcon className="h-6 w-6 text-green-500" />,
     error: <XCircleIcon className="h-6 w-6 text-red-500" />,
     info: <ExclamationTriangleIcon className="h-6 w-6 text-yellow-500" />,
   };
 
-  // Border color per type
   const borders = {
     success: "border-green-500",
     error: "border-red-500",
@@ -51,26 +45,27 @@ const Toast = ({ message, title, type = "success", onClose }) => {
   return (
     <div
       className={`
-        fixed top-5 right-5 z-50 w-full max-w-sm
-        bg-white shadow-lg rounded-md border-l-4 p-4 flex items-start gap-3
+        fixed z-50 
+        top-3 right-3 
+        w-[90%] max-w-xs sm:max-w-sm   /* Mobile friendly width */
+        bg-white shadow-lg rounded-md border-l-4 
+        p-3 sm:p-4 
+        flex items-start gap-3
+
         transform transition-all duration-500 ease-out
         ${borders[type]}
 
-        ${visible
-          ? "opacity-100 translate-x-0"
-          : "opacity-0 translate-x-10"}  /* smooth animation */
+        ${visible ? "opacity-100 translate-x-0"
+                  : "opacity-0 translate-x-5"}
       `}
     >
-      {/* Icon */}
       <div className="pt-1">{icons[type]}</div>
 
-      {/* Text */}
       <div className="flex-1">
         <p className="font-semibold text-gray-900">{title}</p>
         <p className="text-sm text-gray-600">{message}</p>
       </div>
 
-      {/* Close Button */}
       <button
         onClick={closeInstant}
         className="text-gray-400 hover:text-gray-700 transition"

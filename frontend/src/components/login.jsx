@@ -4,7 +4,6 @@ import { useGoogleLogin } from '@react-oauth/google';
 import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props';
 import { FaFacebookF, FaLinkedin, FaXTwitter } from 'react-icons/fa6';
 
-
 import { useLoader } from './shared/loaderContext';
 import { useAuth } from './shared/authContext';
 import { useWishlist } from './shared/wishlistcontext';
@@ -12,7 +11,6 @@ import { useCart } from './shared/cartContext';
 import api from '../config/axios';
 import API_BASE_URL from '../config/api';
 
-// Lazy-loaded skeleton
 const LoginSkeleton = React.lazy(() => import('./skeleton/LoginSkeleton'));
 
 const SIGNIN_BG = "https://images.unsplash.com/photo-1557682250-33bd709cbe85";
@@ -35,18 +33,17 @@ function Login() {
   const [signupData, setSignupData] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
 
-  // redirect if logged in
+  // If logged in, redirect
   useEffect(() => {
     if (isAuthenticated) navigate('/user');
   }, [isAuthenticated, navigate]);
 
-  // linkedin callback
+  // LinkedIn callback
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const code = params.get('code');
     if (code) handleLinkedInCallback(code);
   }, [location]);
-
 
   const fetchWishlist = async () => {
     try {
@@ -62,10 +59,12 @@ function Login() {
     } catch {}
   };
 
+  // Login handler
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
     try {
       const res = await api.post('/api/token/', {
         username: loginData.email,
@@ -82,9 +81,11 @@ function Login() {
     } catch {
       setError('Invalid login credentials');
     }
+
     setLoading(false);
   };
 
+  // Signup handler
   const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -98,6 +99,7 @@ function Login() {
         password2: signupData.password,
         name: signupData.name,
       });
+
       setIsSignUp(false);
     } catch {
       setError('Signup failed. Try again.');
@@ -106,33 +108,32 @@ function Login() {
     setLoading(false);
   };
 
-  const handleGoogleSuccess = async (response) => {
-    const { access_token } = response;
-    setLoading(true);
-
-    try {
-      const res = await api.post('/api/auth/google/', {
-        id_token: access_token,
-      });
-
-      const { access, refresh } = res.data;
-
-      setToken(access);
-      localStorage.setItem('access', access);
-      localStorage.setItem('refresh', refresh);
-
-      await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate('/user');
-      window.location.reload();
-    } catch {
-      setError("Google login failed");
-    }
-
-    setLoading(false);
-  };
-
+  // Social logins
   const googleLogin = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
+    onSuccess: async (response) => {
+      const { access_token } = response;
+      setLoading(true);
+
+      try {
+        const res = await api.post('/api/auth/google/', {
+          id_token: access_token,
+        });
+
+        const { access, refresh } = res.data;
+
+        setToken(access);
+        localStorage.setItem('access', access);
+        localStorage.setItem('refresh', refresh);
+
+        await Promise.all([fetchWishlist(), fetchCart()]);
+        navigate('/user');
+        window.location.reload();
+      } catch {
+        setError("Google login failed");
+      }
+
+      setLoading(false);
+    },
     onError: () => setError("Google login failed"),
     flow: "implicit",
   });
@@ -156,7 +157,7 @@ function Login() {
       localStorage.setItem('refresh', refresh);
 
       await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate('/');
+      navigate('/user');
     } catch {
       setError('Facebook login failed');
     }
@@ -190,7 +191,7 @@ function Login() {
       localStorage.setItem('refresh', refresh);
 
       await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate('/');
+      navigate('/user');
     } catch {
       setError('LinkedIn login failed');
     }
@@ -200,164 +201,183 @@ function Login() {
 
   return (
     <Suspense fallback={<LoginSkeleton />}>
-      <div className="min-h-screen flex items-center justify-center px-4 dark:bg-black">
+      <div className="min-h-screen flex items-center justify-center px-4 py-10 dark:bg-black">
 
-        <div className="relative w-full max-w-4xl h-[550px] bg-white dark:bg-neutral-900 rounded-xl shadow-xl overflow-hidden transition-all">
+        <div className="
+          w-full max-w-4xl bg-white dark:bg-neutral-900 rounded-xl shadow-lg 
+          overflow-hidden transition-all flex flex-col lg:flex-row
+        ">
 
-          {/* LOGIN FORM */}
-          <form
-            onSubmit={handleLogin}
-            className={`absolute top-0 left-0 w-1/2 h-full p-10 transition-all duration-700 z-20 
-           ${isSignUp ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'}`}
-          >
-            <h2 className="text-2xl font-bold mb-6 dark:text-white">Sign In</h2>
+          {/* LEFT SIDE – FORMS */}
+          <div className="w-full lg:w-1/2 p-8 lg:p-12">
 
-            <div className="flex gap-3 mb-6">
+            {/* Toggle Buttons (Mobile Only) */}
+            <div className="flex lg:hidden justify-center mb-6 gap-6">
+              <button
+                onClick={() => { setIsSignUp(false); setError(''); }}
+                className={`pb-1 text-lg border-b-2 ${
+                  !isSignUp ? "border-green-600 text-green-600" : "border-transparent text-gray-400"
+                }`}
+              >
+                Sign In
+              </button>
 
-              {/* Google icon only */}
-              <SocialButton
-                icon={<img src="https://www.svgrepo.com/show/355037/google.svg" className="w-5" />}
-                color="#DB4437"
-                onClick={googleLogin}
-              />
-
-              {/* Facebook */}
-              <FacebookLogin
-                appId="1960201038102026"
-                fields="name,email,picture"
-                callback={handleFacebookResponse}
-                render={(props) => (
-                  <SocialButton icon={<FaFacebookF />} color="#1877F2" onClick={props.onClick} />
-                )}
-              />
-
-              {/* LinkedIn */}
-              <SocialButton icon={<FaLinkedin />} color="#0A66C2" onClick={handleLinkedInLogin} />
+              <button
+                onClick={() => { setIsSignUp(true); setError(''); }}
+                className={`pb-1 text-lg border-b-2 ${
+                  isSignUp ? "border-green-600 text-green-600" : "border-transparent text-gray-400"
+                }`}
+              >
+                Sign Up
+              </button>
             </div>
 
-            <input
-              type="text"
-              placeholder="Email"
-              className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
-              onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-              required
-            />
+            {/* SIGN-IN FORM */}
+            {!isSignUp && (
+              <form onSubmit={handleLogin}>
+                <h2 className="text-2xl font-bold mb-6 dark:text-white">Sign In</h2>
 
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
-              onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-              required
-            />
+                <SocialRow googleLogin={googleLogin} handleFacebook={handleFacebookResponse} handleLinkedIn={handleLinkedInLogin} />
 
-            {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+                <input
+                  type="text"
+                  placeholder="Username or Email"
+                  className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
+                  onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                  required
+                />
 
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">
-              SIGN IN
-            </button>
-          </form>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
+                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                  required
+                />
 
-          {/* SIGN UP FORM */}
-          <form
-            onSubmit={handleSignup}
-            className={`absolute top-0 left-1/2 w-1/2 h-full p-10 transition-all duration-700 z-20
-          ${isSignUp ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}
-          >
-            <h2 className="text-2xl font-bold mb-6 dark:text-white">Create Account</h2>
+                {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
-            <div className="flex gap-3 mb-6">
-              <SocialButton
-                icon={<img src="https://www.svgrepo.com/show/355037/google.svg" className="w-5" />}
-                color="#DB4437"
-                onClick={googleLogin}
-              />
+                <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">
+                  SIGN IN
+                </button>
 
-              <FacebookLogin
-                appId="1960201038102026"
-                fields="name,email,picture"
-                callback={handleFacebookResponse}
-                render={(props) => (
-                  <SocialButton icon={<FaFacebookF />} color="#1877F2" onClick={props.onClick} />
-                )}
-              />
+                <p className="text-center mt-4 text-sm dark:text-gray-300">
+                  Don't have an account?{" "}
+                  <span
+                    className="text-green-600 cursor-pointer"
+                    onClick={() => setIsSignUp(true)}
+                  >
+                    Sign up
+                  </span>
+                </p>
+              </form>
+            )}
 
-              <SocialButton icon={<FaXTwitter />} color="black" />
-            </div>
+            {/* SIGN-UP FORM */}
+            {isSignUp && (
+              <form onSubmit={handleSignup}>
+                <h2 className="text-2xl font-bold mb-6 dark:text-white">Create Account</h2>
 
-            <input
-              type="text"
-              placeholder="Name"
-              className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
-              onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-              required
-            />
+                <SocialRow googleLogin={googleLogin} handleFacebook={handleFacebookResponse} handleLinkedIn={handleLinkedInLogin} />
 
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
-              onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-              required
-            />
+                <input
+                  type="text"
+                  placeholder="Name"
+                  className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
+                  onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
+                  required
+                />
 
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
-              onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-              required
-            />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
+                  onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                  required
+                />
 
-            {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="w-full px-4 py-2 mb-3 border rounded dark:bg-black dark:text-white"
+                  onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                  required
+                />
 
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">
-              SIGN UP
-            </button>
-          </form>
+                {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
-          {/* RIGHT SLIDER PANEL */}
+                <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">
+                  SIGN UP
+                </button>
+
+                <p className="text-center mt-4 text-sm dark:text-gray-300">
+                  Already have an account?{" "}
+                  <span
+                    className="text-green-600 cursor-pointer"
+                    onClick={() => setIsSignUp(false)}
+                  >
+                    Sign in
+                  </span>
+                </p>
+              </form>
+            )}
+
+          </div>
+
+          {/* RIGHT PANEL – DESKTOP ONLY */}
           <div
-            className={`absolute top-0 right-0 w-1/2 h-full flex items-center justify-center text-white p-10 
-            transition-all duration-700 bg-cover bg-center
-            ${isSignUp ? 'right-1/2' : ''}`}
+            className="
+              hidden lg:flex w-1/2 p-10 items-center justify-center 
+              text-white bg-cover bg-center transition-all
+            "
             style={{
               backgroundImage: `url('${isSignUp ? SIGNIN_BG : SIGNUP_BG}')`,
             }}
           >
-            <div className="bg-black/50 p-6 rounded-lg text-center backdrop-blur-sm">
-              <h2 className="text-2xl font-bold mb-2">
-                {isSignUp ? 'Welcome Back!' : 'Hello, Friend!'}
+            <div className="bg-black/50 p-6 rounded-lg text-center">
+              <h2 className="text-3xl font-bold mb-2">
+                {isSignUp ? "Welcome Back!" : "Hello, Friend!"}
               </h2>
 
               <p className="mb-6 text-sm">
                 {isSignUp
-                  ? 'To keep connected with us please login with your personal info.'
-                  : 'Enter your personal details and start your journey.'}
+                  ? "To stay connected, please login with your details."
+                  : "Enter your personal details to start your journey with us."}
               </p>
 
               <button
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError('');
-                }}
+                onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
                 className="px-6 py-2 border border-white rounded-full font-bold hover:bg-white hover:text-green-600 transition"
               >
-                {isSignUp ? 'SIGN IN' : 'SIGN UP'}
+                {isSignUp ? "SIGN IN" : "SIGN UP"}
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </Suspense>
   );
 }
 
+const SocialRow = ({ googleLogin, handleFacebook, handleLinkedIn }) => (
+  <div className="flex gap-4 mb-6 justify-center">
+    <SocialButton icon={<img src="https://www.svgrepo.com/show/355037/google.svg" className="w-5" />} color="#DB4437" onClick={googleLogin} />
+    <FacebookLogin
+      appId="1960201038102026"
+      fields="email,name,picture"
+      callback={handleFacebook}
+      render={(props) => (
+        <SocialButton icon={<FaFacebookF />} color="#1877F2" onClick={props.onClick} />
+      )}
+    />
+    <SocialButton icon={<FaLinkedin />} color="#0A66C2" onClick={handleLinkedIn} />
+  </div>
+);
+
 const SocialButton = ({ icon, color, onClick }) => (
   <button
     onClick={onClick}
-    className="transition-transform hover:scale-150 duration-300 p-2 border rounded-full"
+    className="transition-transform hover:scale-125 duration-300 p-2 border rounded-full"
     style={{ color }}
   >
     {icon}

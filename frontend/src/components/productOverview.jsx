@@ -50,7 +50,7 @@ function ProductOverview() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Update variant on color change
+  // Update variant when color changes
   useEffect(() => {
     if (!product?.variants) return;
 
@@ -100,7 +100,7 @@ function ProductOverview() {
 
   // Zoom logic
   const handleMove = (e) => {
-    if (!imageRef.current) return;
+    if (!imageRef.current || window.innerWidth < 768) return; // disable zoom on mobile
 
     const rect = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -118,7 +118,6 @@ function ProductOverview() {
     );
 
   const variants = product.variants || [];
-
   const colors = [
     ...new Map(variants.map((v) => [v.color?.id, v.color])).values(),
   ];
@@ -128,8 +127,9 @@ function ProductOverview() {
     activeVariant?.previous_price || product.previous_price;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 dark:bg-black dark:text-white transition">
-      {/* ========== TOAST ========== */}
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-8 dark:bg-black dark:text-white">
+
+      {/* Toast */}
       {toast && (
         <Toast
           message={toast.message}
@@ -139,13 +139,20 @@ function ProductOverview() {
         />
       )}
 
-      <div className="flex flex-col md:flex-row gap-16">
-        {/* ========== IMAGE ========== */}
-        <div className="md:w-1/2">
+      <div className="flex flex-col lg:flex-row gap-10">
+
+        {/* IMAGE SECTION */}
+        <div className="lg:w-1/2 w-full">
           <div
             ref={imageRef}
-            className="relative w-[420px] h-[420px] border dark:border-gray-700 rounded-lg overflow-hidden mx-auto cursor-zoom-in"
-            onMouseEnter={() => setZooming(true)}
+            className="
+              relative 
+              w-full max-w-full 
+              h-[320px] sm:h-[360px] md:h-[420px] 
+              border dark:border-gray-700 rounded-lg overflow-hidden 
+              mx-auto cursor-zoom-in
+            "
+            onMouseEnter={() => window.innerWidth >= 768 && setZooming(true)}
             onMouseLeave={() => setZooming(false)}
             onMouseMove={handleMove}
           >
@@ -157,7 +164,7 @@ function ProductOverview() {
 
             {zooming && (
               <div
-                className="absolute inset-0 bg-no-repeat pointer-events-none bg-white dark:bg-black"
+                className="absolute inset-0 bg-no-repeat pointer-events-none"
                 style={{
                   backgroundImage: `url(${selectedImage})`,
                   backgroundSize: "200%",
@@ -167,19 +174,24 @@ function ProductOverview() {
             )}
           </div>
 
-          {/* THUMBNAILS */}
+          {/* THUMBNAILS — SCROLLABLE ON MOBILE */}
           {variants.length > 0 && (
-            <div className="grid grid-cols-4 gap-3 mt-4">
+            <div className="
+              flex gap-3 overflow-x-auto mt-4 pb-2 
+              scrollbar-thin scrollbar-thumb-gray-400
+            ">
               {variants.map((v, i) => (
                 <img
                   key={i}
                   src={v.image}
-                  className={`h-20 rounded border cursor-pointer object-cover transition
-                  ${
-                    selectedImage === v.image
-                      ? "border-teal-500 ring-2 ring-teal-500"
-                      : "border-gray-300 dark:border-gray-700"
-                  }`}
+                  className={`
+                    h-16 w-16 sm:h-20 sm:w-20 rounded border cursor-pointer object-cover transition
+                    ${
+                      selectedImage === v.image
+                        ? "border-teal-500 ring-2 ring-teal-500"
+                        : "border-gray-300 dark:border-gray-700"
+                    }
+                  `}
                   onClick={() => {
                     setActiveVariant(v);
                     setSelectedColor(v.color);
@@ -191,23 +203,18 @@ function ProductOverview() {
           )}
         </div>
 
-        {/* ========== DETAILS ========== */}
-        <div className="md:w-1/2 space-y-6">
-          <h1 className="text-3xl font-bold dark:text-white">{product.name}</h1>
+        {/* DETAILS */}
+        <div className="lg:w-1/2 w-full space-y-5">
 
-          {/* BRAND */}
-          <p className="text-sm dark:text-gray-300">
-            Brand:{" "}
-            <span className="font-semibold dark:text-white">
-              {product.brand?.name}
-            </span>
+          <h1 className="text-2xl sm:text-3xl font-bold">{product.name}</h1>
+
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Brand: <span className="font-semibold">{product.brand?.name}</span>
           </p>
 
           {/* PRICE */}
           <div className="flex items-center gap-3">
-            <span className="text-3xl font-bold text-teal-600">
-              ${price}
-            </span>
+            <span className="text-3xl font-bold text-teal-600">${price}</span>
             {previousPrice && (
               <span className="line-through text-gray-500 dark:text-gray-400">
                 ${previousPrice}
@@ -215,16 +222,16 @@ function ProductOverview() {
             )}
           </div>
 
-          {/* COLOR PICKER */}
+          {/* COLOR OPTIONS */}
           {colors.length > 0 && (
             <div>
-              <h4 className="font-semibold mb-2 dark:text-white">Color:</h4>
-              <div className="flex gap-3">
+              <h4 className="font-semibold mb-2">Color:</h4>
+              <div className="flex gap-3 flex-wrap">
                 {colors.map((c) => (
                   <button
                     key={c.id}
                     onClick={() => setSelectedColor(c)}
-                    className="w-8 h-8 rounded-full border-2"
+                    className={`w-8 h-8 rounded-full border-2`}
                     style={{
                       backgroundColor: c.colour_code,
                       borderColor:
@@ -262,28 +269,28 @@ function ProductOverview() {
             </button>
           </div>
 
-          {/* BUTTONS */}
-          <div className="flex gap-4 mt-4">
+          {/* ACTION BUTTONS — STACK ON MOBILE */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <button
               onClick={handleCart}
-              className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition"
+              className="bg-teal-600 text-white px-6 py-3 rounded hover:bg-teal-700 transition w-full sm:w-auto"
             >
               Add to Cart
             </button>
 
             <button
               onClick={handleWishlist}
-              className="bg-gray-300 dark:bg-gray-800 dark:text-white px-6 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-700 transition"
+              className="bg-gray-300 dark:bg-gray-800 dark:text-white px-6 py-3 rounded hover:bg-gray-400 dark:hover:bg-gray-700 transition w-full sm:w-auto"
             >
               Add to Wishlist
             </button>
           </div>
-          <div className="mt-4 space-y-2 text-sm text-gray-600">
+
+          {/* STOCK + DETAILS */}
+          <div className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
             {activeVariant && (
               <>
-                <p>
-                  <strong>SKU:</strong> {activeVariant.sku?.code || 'N/A'}
-                </p>
+                <p><strong>SKU:</strong> {activeVariant.sku?.code || "N/A"}</p>
                 <p className={activeVariant.quantity > 0 ? 'text-green-700' : 'text-red-500'}>
                   {activeVariant.quantity === 0
                     ? 'Out of stock'
@@ -291,46 +298,24 @@ function ProductOverview() {
                     ? `Only ${activeVariant.quantity} left!`
                     : `In stock: ${activeVariant.quantity}`}
                 </p>
-                {activeVariant.price && (
-                  <p>
-                    <strong>Variant Price:</strong> ${activeVariant.price}
-                  </p>
-                )}
               </>
             )}
 
-            {/* Warranty & Return Policy */}
-            <p>
-              <span role="img" aria-label="warranty">
-                🛡️
-              </span>{' '}
-              1 Year AL Jazeera Brand Warranty
-            </p>
-            <p>
-              <span role="img" aria-label="return">
-                🔄
-              </span>{' '}
-              30 Day Return Policy
-            </p>
-            <p>
-              <span role="img" aria-label="cash">
-                💵
-              </span>{' '}
-              Cash on Delivery available
-            </p>
-
-            {/* Availability */}
-            <p>
-              <strong>Availability:</strong> {product.availability || 'In Stock'}
-            </p>
+            <p>🛡️ 1 Year AL Jazeera Warranty</p>
+            <p>🔄 30 Day Return Policy</p>
+            <p>💵 Cash on Delivery available</p>
           </div>
         </div>
       </div>
-              
-      {/* ========== TABS SECTION ========== */}
-      <div className="mt-12">
-        {/* TABS */}
-        <div className="flex gap-10 border-b dark:border-gray-700">
+
+      {/* TABS */}
+      <div className="mt-10">
+
+        {/* SCROLLABLE TABS ON MOBILE */}
+        <div className="
+          flex gap-8 border-b dark:border-gray-700 
+          overflow-x-auto whitespace-nowrap pb-2
+        ">
           <button
             onClick={() => setActiveTab("description")}
             className={`pb-3 text-lg ${
@@ -355,7 +340,7 @@ function ProductOverview() {
         </div>
 
         {/* TAB CONTENT */}
-        <div className="py-8 dark:text-gray-300">
+        <div className="py-6 text-gray-700 dark:text-gray-300">
           {activeTab === "description" && (
             <p>{product.description || "No description available."}</p>
           )}
