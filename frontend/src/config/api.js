@@ -1,5 +1,5 @@
 const API = {
-  BASE_URL: "https://backend-broken-cloud-4726.fly.dev/",
+  BASE_URL: "https://prince1971.pythonanywhere.com/",
   AUTH: {
     LOGIN: "/api/token/",
     SIGNUP: "/api/auth/registration/",

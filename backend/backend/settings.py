@@ -31,7 +31,7 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
-    "https://prince1971.pythonanywhere.com",
+     
     "http://localhost:3000",
     "https://mtks-shop-rcau.vercel.app/",
 

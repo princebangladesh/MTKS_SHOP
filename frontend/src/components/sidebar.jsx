@@ -5,40 +5,54 @@ import { BASE_URL } from "../config/api";
 function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
   const [Dropdown, setDropdown] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
 
+  // DARK MODE STATES
+  const [darkMode, setDarkMode] = useState(false);
+  const [themeLoaded, setThemeLoaded] = useState(false);
+
+  /* -------------------- Load Categories -------------------- */
   useEffect(() => {
     const fetchCategories = async () => {
-      const response = await fetch(`${BASE_URL}/category/`);
-      const data = await response.json();
-      setCategories(data);
+      try {
+        const response = await fetch(`${BASE_URL}/category/`);
+        const data = await response.json();
+        setCategories(data);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+      }
     };
     fetchCategories();
   }, []);
 
-  // Enable Tailwind Dark Mode
+  /* -------------------- Load Saved Theme on First Render -------------------- */
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setDarkMode(savedTheme === "dark");
+    setThemeLoaded(true); // Mark theme as loaded
+  }, []);
+
+  /* -------------------- Apply Theme After Loading -------------------- */
+  useEffect(() => {
+    if (!themeLoaded) return; // Prevent overwrite before saved theme loads
+
     if (darkMode) {
       document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
-  }, [darkMode]);
+  }, [darkMode, themeLoaded]);
 
-  const DropClick = () => {
-    setDropdown(!Dropdown);
-  };
-
-  const handleItemClick = () => {
-    setActiveSide(true);
-  };
+  const handleDropdown = () => setDropdown(!Dropdown);
+  const handleItemClick = () => setActiveSide(true);
 
   return (
     <>
-      {/* 🔥 Dim & Blurred Background */}
+      {/* Background Overlay */}
       {!ActiveSide && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40 transition-opacity duration-300"
+          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"
           onClick={handleBar}
         />
       )}
@@ -46,14 +60,13 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
       {/* Sidebar */}
       <div
         id="hs-sidebar-offcanvas"
-        className={`${
-          ActiveSide ? "-translate-x-full" : "translate-x-0"
-        } fixed top-0 left-0 bottom-0 z-50
-          w-64 transition-transform duration-300 Caro-bg 
-          border-r border-gray-200 dark:border-neutral-700`}
+        className={`
+          fixed top-0 left-0 bottom-0 z-50 w-64
+          transition-transform duration-300 Caro-bg
+          border-r border-gray-200 dark:border-neutral-700
+          ${ActiveSide ? "-translate-x-full" : "translate-x-0"}
+        `}
         role="dialog"
-        tabIndex="-1"
-        aria-label="Sidebar"
       >
         <div className="relative flex flex-col h-full">
 
@@ -64,7 +77,6 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
             </span>
 
             <button
-              type="button"
               onClick={handleBar}
               className="flex justify-center items-center size-7 rounded-full 
               bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 
@@ -87,7 +99,7 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
           <nav className="h-full overflow-y-auto px-3 py-4">
             <ul className="space-y-2">
 
-              {/* Dashboard */}
+              {/* Home */}
               <li>
                 <Link
                   onClick={handleItemClick}
@@ -106,10 +118,10 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                 </Link>
               </li>
 
-              {/* Categories Dropdown */}
+              {/* Categories */}
               <li>
                 <button
-                  onClick={DropClick}
+                  onClick={handleDropdown}
                   className="flex items-center w-full gap-x-3 py-2 px-3 
                   bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg
                   hover:bg-gray-200 dark:hover:bg-neutral-700"
@@ -121,7 +133,7 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                   Categories
 
                   <svg
-                    className={`w-4 h-4 ml-auto transition-transform duration-300 ease-in-out ${
+                    className={`w-4 h-4 ml-auto transform transition-transform duration-300 ${
                       Dropdown ? "rotate-180" : ""
                     }`}
                     fill="none"
@@ -133,26 +145,23 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                   </svg>
                 </button>
 
-                {/* Smooth Animated Dropdown */}
+                {/* Dropdown List */}
                 <ul
-                  className={`
-                    ml-3 overflow-hidden 
-                    transition-all duration-500 ease-[cubic-bezier(0.4,0.0,0.2,1)] 
-                    ${Dropdown ? "max-h-96 opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-2"}
-                  `}
+                  className={`ml-3 overflow-hidden transition-all duration-500 ease-in-out
+                    ${Dropdown ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
                 >
                   {categories
-                    .filter((category) => category.show_in_dropdown)
-                    .map((category) => (
-                      <li key={category.id}>
+                    .filter((cat) => cat.show_in_dropdown)
+                    .map((cat) => (
+                      <li key={cat.id}>
                         <Link
                           onClick={handleItemClick}
-                          to={`/category/${category.slug}`}
+                          to={`/category/${cat.slug}`}
                           className="flex items-center py-2 px-3 mt-1 
                           text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 
                           rounded-lg"
                         >
-                          {category.name}
+                          {cat.name}
                         </Link>
                       </li>
                     ))}
@@ -168,7 +177,7 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                   bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg 
                   hover:bg-gray-200 dark:hover:bg-neutral-700"
                 >
-                  <svg className="w-5 h-5" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 24 24">
                     <circle cx="12" cy="7" r="4" />
                     <path d="M5.5 21c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6" />
                   </svg>
@@ -192,17 +201,18 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                 </Link>
               </li>
 
-              {/* 🌙 Dark Mode Toggle */}
+              {/* Dark Mode Toggle */}
               <li>
                 <button
                   onClick={() => setDarkMode(!darkMode)}
                   className="flex items-center gap-x-3 py-2 px-3 
                   bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg
-                  hover:bg-gray-200 dark:hover:bg-neutral-700 w-full transition"
+                  hover:bg-gray-200 dark:hover:bg-neutral-700 w-full"
                 >
                   {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
                 </button>
               </li>
+
             </ul>
           </nav>
         </div>

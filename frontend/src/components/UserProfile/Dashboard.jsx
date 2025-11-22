@@ -26,7 +26,11 @@ const Sidebar = ({ setActiveTab, activeTab }) => {
         {menu.map(item => (
           <li
             key={item.key}
-            className={`cursor-pointer p-2 rounded transition ${activeTab === item.key ? "bg-gray-200 dark:bg-gray-700" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+            className={`cursor-pointer p-2 rounded transition ${
+              activeTab === item.key
+                ? "bg-gray-200 dark:bg-gray-700"
+                : "hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
             onClick={() => setActiveTab(item.key)}
           >
             {item.label}
@@ -37,7 +41,7 @@ const Sidebar = ({ setActiveTab, activeTab }) => {
   );
 };
 
-// Mobile Cards Component
+// Mobile + Desktop Cards Component
 const Card = ({ icon, label, onClick }) => (
   <div
     onClick={onClick}
@@ -60,9 +64,11 @@ export default function DashboardSummary({ activeTab, setActiveTab }) {
       case "password": return <ChangePassword />;
       case "profile": return <Profile />;
       case "logout": return <Logout />;
+
+      // 🟢 Default dashboard cards — visible on ALL screens
       default:
         return (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6 md:hidden">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
             <Card icon="📄" label="Orders" onClick={() => setActiveTab("orders")} />
             <Card icon="💜" label="Wishlist" onClick={() => setActiveTab("wishlist")} />
             <Card icon="👤" label="Profile" onClick={() => setActiveTab("profile")} />
@@ -77,15 +83,8 @@ export default function DashboardSummary({ activeTab, setActiveTab }) {
     <div className={darkMode ? "dark" : ""}>
       <div className="flex flex-col md:flex-row max-w-6xl mx-auto px-4 py-6 bg-gray-100 dark:bg-gray-900 min-h-screen gap-6">
 
-        {/* Sidebar (hidden on mobile) */}
-        <Sidebar setActiveTab={setActiveTab} activeTab={activeTab} />
-
         {/* Right Section */}
         <div className="flex-1">
-
-          {/* Dark Mode Toggle */}
-          
-
           {renderActiveTab()}
         </div>
       </div>
