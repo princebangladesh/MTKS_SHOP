@@ -54,7 +54,24 @@ const Card = ({ icon, label, onClick }) => (
 
 export default function DashboardSummary({ activeTab, setActiveTab }) {
   const [darkMode, setDarkMode] = useState(false);
+const handleLogout = async () => {
+    const refresh = localStorage.getItem("refresh");
 
+    try {
+      await fetch("/api/token/blacklist/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh }),
+      });
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+
+    localStorage.removeItem("access");
+    localStorage.removeItem("token");
+
+    window.location.href = "/login";
+  };
   const renderActiveTab = () => {
     switch (activeTab) {
       case "orders": return <OrderList />;
@@ -73,7 +90,7 @@ export default function DashboardSummary({ activeTab, setActiveTab }) {
             <Card icon="💜" label="Wishlist" onClick={() => setActiveTab("wishlist")} />
             <Card icon="👤" label="Profile" onClick={() => setActiveTab("profile")} />
             <Card icon="🔒" label="Change Password" onClick={() => setActiveTab("password")} />
-            <Card icon="🚪" label="Logout" onClick={() => setActiveTab("logout")} />
+            <Card icon="🚪" label="Logout" onClick={() => handleLogout()} />
           </div>
         );
     }

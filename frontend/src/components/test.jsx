@@ -3,7 +3,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 function TestGoogleLogin() {
   return (
-    <GoogleOAuthProvider clientId="766488328889-nvgg560l1rhgebec70uhfetvfv80k59i.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="766488328889-8kqb759ul62ek978a9l3t5lcqjecliqk.apps.googleusercontent.com">
       <GoogleLogin
         onSuccess={res => console.log('Success:', res)}
         onError={() => console.log('Error')}

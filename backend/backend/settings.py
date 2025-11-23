@@ -26,7 +26,7 @@ DEBUG = True
 # DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
-    "*"
+    "localhost",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
