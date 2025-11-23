@@ -28,12 +28,12 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "light";
     setDarkMode(savedTheme === "dark");
-    setThemeLoaded(true); // Mark theme as loaded
+    setThemeLoaded(true);
   }, []);
 
-  /* -------------------- Apply Theme After Loading -------------------- */
+  /* -------------------- Apply Theme -------------------- */
   useEffect(() => {
-    if (!themeLoaded) return; // Prevent overwrite before saved theme loads
+    if (!themeLoaded) return;
 
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -105,8 +105,8 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                   onClick={handleItemClick}
                   to="/"
                   className="flex items-center gap-x-3 py-2 px-3 
-                  bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white 
-                  rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-700"
+                    bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white 
+                    rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-700"
                 >
                   <svg className="w-5 h-5" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24">
                     <rect x="3" y="3" width="7" height="9"></rect>
@@ -118,32 +118,40 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                 </Link>
               </li>
 
-              {/* Categories */}
+              {/* Categories with Link + Chevron */}
               <li>
-                <button
-                  onClick={handleDropdown}
-                  className="flex items-center w-full gap-x-3 py-2 px-3 
-                  bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg
-                  hover:bg-gray-200 dark:hover:bg-neutral-700"
+                <div
+                  className="flex items-center w-full py-2 px-3 
+                    bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white 
+                    rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-700"
                 >
-                  <svg className="w-5 h-5" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-
-                  Categories
-
-                  <svg
-                    className={`w-4 h-4 ml-auto transform transition-transform duration-300 ${
-                      Dropdown ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
+                  {/* Clicking HERE goes to /shop */}
+                  <Link
+                    to="/shop"
+                    onClick={handleItemClick}
+                    className="flex items-center gap-x-3 flex-grow"
                   >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
+                    <svg className="w-5 h-5" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    Categories
+                  </Link>
+
+                  {/* Chevron ONLY toggles dropdown */}
+                  <button onClick={handleDropdown}>
+                    <svg
+                      className={`w-4 h-4 ml-2 transform transition-transform duration-300 ${
+                        Dropdown ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                </div>
 
                 {/* Dropdown List */}
                 <ul
@@ -158,8 +166,8 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                           onClick={handleItemClick}
                           to={`/category/${cat.slug}`}
                           className="flex items-center py-2 px-3 mt-1 
-                          text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 
-                          rounded-lg"
+                            text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 
+                            rounded-lg"
                         >
                           {cat.name}
                         </Link>
@@ -174,10 +182,10 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                   onClick={handleItemClick}
                   to="/user"
                   className="flex items-center gap-x-3 py-2 px-3 
-                  bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg 
-                  hover:bg-gray-200 dark:hover:bg-neutral-700"
+                    bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg 
+                    hover:bg-gray-200 dark:hover:bg-neutral-700"
                 >
-                  <svg className="w-5 h-5" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 24 24">
+                  <svg className="w-5 h-5" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24">
                     <circle cx="12" cy="7" r="4" />
                     <path d="M5.5 21c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6" />
                   </svg>
@@ -191,8 +199,8 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                   onClick={handleItemClick}
                   to="/contact"
                   className="flex items-center gap-x-3 py-2 px-3 
-                  bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg
-                  hover:bg-gray-200 dark:hover:bg-neutral-700"
+                    bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg
+                    hover:bg-gray-200 dark:hover:bg-neutral-700"
                 >
                   <svg className="w-5 h-5" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24">
                     <path d="M21 8V7l-3 2-2-1-3 2-2-1-3 2-3-2v9h18V8z" />
@@ -206,8 +214,8 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
                 <button
                   onClick={() => setDarkMode(!darkMode)}
                   className="flex items-center gap-x-3 py-2 px-3 
-                  bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg
-                  hover:bg-gray-200 dark:hover:bg-neutral-700 w-full"
+                    bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg
+                    hover:bg-gray-200 dark:hover:bg-neutral-700 w-full"
                 >
                   {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
                 </button>
