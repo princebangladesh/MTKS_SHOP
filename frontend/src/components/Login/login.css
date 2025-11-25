@@ -159,7 +159,7 @@
 ============================================================ */
 @media (max-width: 767px) {
   .auth-shell.signup-mode .side-form {
-    transform: translateX(8%);
+    transform: translateX(20%);
       }
   .auth-shell {
     grid-template-columns: 1fr;
