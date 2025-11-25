@@ -10,7 +10,6 @@ import ProductList from './components/productlist.jsx';
 import ProductOverView from './components/productOverview.jsx';
 import Contact from './components/contact.jsx';
 import About from './components/about.jsx';
-import Login from './components/login.jsx';
 import Cart from './components/cart.jsx';
 import TrendingList from './components/trendinglist.jsx';
 import FeaturedList from './components/featuredlist.jsx';
@@ -23,6 +22,7 @@ import OrderSuccessPage from './components/orderSuccessPage.jsx';
 import OrderList from './components/UserProfile/OrderList.jsx';
 import OrderDetails from './components/UserProfile/orderdetails.jsx';
 import Shop from './components/shop.jsx';
+import Login from './components/Login/login.jsx';
 function App() {
   return (
     <Router>

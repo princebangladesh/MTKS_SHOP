@@ -1,0 +1,237 @@
+/* ============================================================
+   AUTH SHELL (MAIN CONTAINER)
+============================================================ */
+.auth-shell {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 700px;
+  max-width: 100%;
+  border-radius: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: white;
+  transition: all 0.5s ease;
+}
+
+/* ============================================================
+   SHARED SIDE ELEMENT STYLE
+============================================================ */
+.side {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  padding: 0 50px;
+  box-sizing: border-box;
+  transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* ============================================================
+   GREEN GRADIENT PANEL (left/right sliding block)
+============================================================ */
+.side-panel {
+  left: 0;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.panel-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.panel-bg {
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  z-index: 1;
+}
+
+.panel-blob {
+  border-radius: 100%;
+  opacity: 0.28;
+  z-index: 2;
+}
+
+.panel-blob-1 {
+  width: 260px;
+  height: 260px;
+  bottom: -110px;
+  left: -70px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.panel-blob-2 {
+  width: 200px;
+  height: 200px;
+  top: -70px;
+  right: -60px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.panel-content {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+}
+
+/* ============================================================
+   RIGHT FORM SIDE
+============================================================ */
+.side-form {
+  left: 50%;
+  padding: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* ============================================================
+   FORM BOXES (login + signup)
+============================================================ */
+.form-box {
+  position: absolute;
+  width: 100%;
+  max-width: 420px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* LOGIN — visible by default */
+.form-box.signin {
+  opacity: 1;
+  transform: translate(0, -50%);
+  pointer-events: auto;
+  transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* SIGNUP — hidden by default */
+.form-box.signup {
+  opacity: 0;
+  transform: translate(20%, -50%);
+  pointer-events: none;
+  transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* ============================================================
+   DESKTOP SLIDE LOGIC
+============================================================ */
+
+/* ---- SIGN IN MODE ---- */
+.auth-shell.signin-mode .side-panel {
+  transform: translateX(0);
+}
+
+.auth-shell.signin-mode .side-form {
+  transform: translateX(0);
+}
+
+/* ---- SIGN UP MODE ---- */
+.auth-shell.signup-mode .side-panel {
+  transform: translateX(100%);
+}
+
+.auth-shell.signup-mode .side-form {
+  transform: translateX(-100%);
+}
+
+/* Form switching */
+.auth-shell.signup-mode .form-box.signin {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-20%, -50%);
+}
+
+.auth-shell.signup-mode .form-box.signup {
+  opacity: 1;
+  transform: translate(0, -50%);
+  pointer-events: auto;
+}
+
+/* ============================================================
+   MOBILE VERSION (full sliding working)
+============================================================ */
+@media (max-width: 767px) {
+  .auth-shell.signup-mode .side-form {
+    transform: translateX(10%);
+      }
+  .auth-shell {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    border-radius: 1rem;
+    height: 750px;
+    overflow: hidden;
+  }
+
+  /* Hide decorative panel */
+  .side-panel {
+    display: none !important;
+  }
+
+  .side-form {
+    position: relative !important;
+    left: 0 !important;
+    width: 100% !important;
+    padding: 2rem 1.2rem 3rem !important;
+  }
+
+  /* --- LOGIN FORM MOBILE --- */
+  .form-box.signin {
+    position: relative !important;
+    top: 0 !important;
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transition: all 0.5s ease;
+  }
+
+  /* LOGIN slides left when switching to signup */
+  .auth-shell.signup-mode .form-box.signin {
+    transform: translateX(-100%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* --- SIGNUP FORM MOBILE --- */
+  .form-box.signup {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100%;
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: all 0.5s ease;
+  }
+
+  /* SIGNUP slides into view */
+  .auth-shell.signup-mode .form-box.signup {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Mobile bottom link */
+  .mobile-auth-link {
+    display: block !important;
+  }
+}
+
+/* ============================================================
+   Social Buttons Hover Animation
+============================================================ */
+.social-btn,
+button {
+  transition: all 0.25s ease-in-out;
+}
+
+.social-btn:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+}

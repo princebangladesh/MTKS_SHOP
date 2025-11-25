@@ -76,16 +76,22 @@ function ProductLand({ product }) {
   };
 
   return (
-    <div className="product-box bg-white dark:bg-black p-4 hover:shadow-xl rounded-xl overflow-hidden 
-      group flex flex-col justify-between">
+    <div className="
+      product-box bg-white dark:bg-black p-4 
+      hover:shadow-xl rounded-xl overflow-hidden 
+      group flex flex-col justify-between
+    ">
 
       {/* IMAGE SECTION */}
       <div className="relative cursor-pointer flex justify-center items-center overflow-hidden">
 
         {/* DESKTOP HOVER ICONS */}
-        <div className="absolute hidden md:flex flex-col top-[15%] right-[-50%] opacity-0 
-          md:group-hover:right-3 md:group-hover:opacity-100 transition-all duration-300 z-10">
-
+        <div className="
+          absolute hidden md:flex flex-col 
+          top-[15%] right-[-50%] opacity-0 
+          md:group-hover:right-3 md:group-hover:opacity-100 
+          transition-all duration-300 z-10
+        ">
           <button
             className="p-4 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700 transition"
             onClick={handleWishlist}
@@ -108,12 +114,15 @@ function ProductLand({ product }) {
         <img
           src={displayImage}
           alt={productName}
-          className="w-full h-[220px] object-cover transition-all duration-500  
-            md:group-hover:scale-110 rounded-lg"
+          className="
+            w-full h-[220px] object-cover 
+            transition-all duration-500  
+            md:group-hover:scale-110 rounded-lg
+          "
         />
       </div>
 
-      {/* ✅ MOBILE STATIC ACTION ICONS */}
+      {/* MOBILE STATIC ICONS */}
       <div className="flex md:hidden justify-center gap-4 mt-3">
         <button
           className="p-3 bg-brandGreen text-white rounded shadow"
@@ -154,20 +163,26 @@ function ProductLand({ product }) {
 
           <p className="text-yellow-500 text-sm">
             {[...Array(5)].map((_, i) => (
-              <span key={i}>{i < Math.floor(product.rating) ? "★" : "☆"}</span>
+              <span key={i}>
+                {i < Math.floor(product.rating) ? "★" : "☆"}
+              </span>
             ))}
           </p>
         </div>
 
         {/* Product Name */}
         <h3
-          className="text-[16px] font-semibold dark:text-white leading-tight mt-2 cursor-pointer"
+          className="
+            text-[16px] font-semibold 
+            dark:text-white leading-tight mt-2 
+            cursor-pointer
+          "
           onClick={() => navigate(`/product/${product.id}`)}
         >
           {productName}
         </h3>
 
-        {/* Price Section */}
+        {/* PRICE SECTION */}
         <div className="pricing mt-2 flex justify-between items-center relative">
           <div className="flex gap-2 items-center">
             <span className="text-brandGreen dark:text-green-300 font-semibold">
@@ -184,9 +199,11 @@ function ProductLand({ product }) {
           {/* DESKTOP CART ICON */}
           <button
             onClick={handleAdd}
-            className="hidden md:block absolute right-[-50%] 
+            className="
+              hidden md:block absolute right-[-50%] 
               md:group-hover:right-1 transition-all duration-300 
-              text-black dark:text-white"
+              text-black dark:text-white
+            "
           >
             <FaCartPlus size="1.4rem" />
           </button>
