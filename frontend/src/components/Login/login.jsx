@@ -3,17 +3,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import FacebookLogin from "react-facebook-login/dist/facebook-login-render-props";
 import { FaFacebookF, FaLinkedin } from "react-icons/fa6";
-
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 import { GOOGLE_CLIENT_ID } from "../../config";
 import { useLoader } from "../shared/loaderContext";
 import { useAuth } from "../shared/authContext";
 import { useWishlist } from "../shared/wishlistcontext";
 import { useCart } from "../shared/cartContext";
+
 import api from "../../config/axios";
-
-import "./login.css"; // 👈 NEW CSS FILE
-
 import "./login.css";
 
 const LoginSkeleton = React.lazy(() => import("../skeleton/LoginSkeleton"));
@@ -23,13 +21,16 @@ const LINKEDIN_REDIRECT_URI = "/login";
 
 function Login() {
   const { setLoading } = useLoader();
-  const { isAuthenticated, setToken } = useAuth();
+  const { setToken } = useAuth();
   const { setWishlist } = useWishlist();
   const { setCart } = useCart();
 
   const navigate = useNavigate();
   const location = useLocation();
   const googleBtnRef = useRef(null);
+
+  // ⭐ FIX: Get redirect target
+  const redirectPath = location.state?.from || "/user";
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
@@ -52,11 +53,11 @@ function Login() {
     label: "",
   });
 
-  /* ---------------- VALIDATION ----------------*/
+  /* VALIDATIONS */
   useEffect(() => {
     setValidLogin(
       loginData.email.trim().length > 3 &&
-      loginData.password.trim().length >= 6
+        loginData.password.trim().length >= 6
     );
   }, [loginData]);
 
@@ -70,19 +71,14 @@ function Login() {
     );
   }, [signupData]);
 
-  /* Auto redirect if logged in */
-  useEffect(() => {
-    if (isAuthenticated) navigate("/user");
-  }, [isAuthenticated, navigate]);
-
-  /* LinkedIn callback */
+  /* LINKEDIN CALLBACK LISTENER */
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const code = params.get("code");
     if (code) handleLinkedInCallback(code);
   }, [location]);
 
-  /* ---------------- FETCH AFTER LOGIN ----------------*/
+  /* FETCH WISHLIST & CART */
   const fetchWishlist = async () => {
     try {
       const res = await api.get("/api/wishlist/");
@@ -97,27 +93,26 @@ function Login() {
     } catch {}
   };
 
-  /* ---------------- HELPERS ----------------*/
+  /* HELPERS */
   const triggerShake = () => {
     setShakeForm(true);
     setTimeout(() => setShakeForm(false), 400);
   };
 
-  const scorePassword = (password) => {
+  const scorePassword = (pw) => {
     let score = 0;
-    if (password.length >= 6) score++;
-    if (password.length >= 10) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    if (score === 0) return { score: 0, label: "" };
-    if (score <= 2) return { score, label: "Weak" };
-    if (score === 3) return { score, label: "Okay" };
-    if (score === 4) return { score, label: "Strong" };
+    if (pw.length >= 6) score++;
+    if (pw.length >= 10) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (score <= 1) return { score, label: "Weak" };
+    if (score === 2) return { score, label: "Okay" };
+    if (score === 3) return { score, label: "Strong" };
     return { score, label: "Very strong" };
   };
 
-  /* ---------------- EMAIL LOGIN ----------------*/
+  /* ---------------- EMAIL LOGIN ---------------- */
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!validLogin) return;
@@ -133,11 +128,14 @@ function Login() {
 
       const { access, refresh } = res.data;
       setToken(access);
+
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
       await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate("/user");
+
+      // ⭐ FIXED: Redirect correctly
+      navigate(redirectPath, { replace: true });
     } catch {
       setError("Invalid login credentials");
       triggerShake();
@@ -146,7 +144,7 @@ function Login() {
     setLoading(false);
   };
 
-  /* ---------------- SIGNUP ----------------*/
+  /* ---------------- SIGNUP ---------------- */
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!validSignup) return;
@@ -172,7 +170,7 @@ function Login() {
     setLoading(false);
   };
 
-  /* ---------------- GOOGLE LOGIN ----------------*/
+  /* ---------------- GOOGLE LOGIN ---------------- */
   const handleGoogleSuccess = async (response) => {
     const id_token = response.credential;
     setLoading(true);
@@ -182,12 +180,14 @@ function Login() {
       const res = await api.post("/api/auth/google/", { id_token });
 
       const { access, refresh } = res.data;
+
       setToken(access);
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
       await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate("/user");
+
+      navigate(redirectPath, { replace: true });
     } catch {
       setError("Google login failed");
       triggerShake();
@@ -196,9 +196,10 @@ function Login() {
     setLoading(false);
   };
 
-  /* ---------------- FACEBOOK LOGIN ----------------*/
+  /* ---------------- FACEBOOK LOGIN ---------------- */
   const handleFacebookResponse = async (response) => {
-    if (!response.accessToken) return setError("Facebook login failed.");
+    if (!response.accessToken)
+      return setError("Facebook login failed.");
 
     setLoading(true);
     setError("");
@@ -209,12 +210,14 @@ function Login() {
       });
 
       const { access, refresh } = res.data;
+
       setToken(access);
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
       await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate("/user");
+
+      navigate(redirectPath, { replace: true });
     } catch {
       setError("Facebook login failed");
       triggerShake();
@@ -223,9 +226,10 @@ function Login() {
     setLoading(false);
   };
 
-  /* ---------------- LINKEDIN LOGIN ----------------*/
+  /* ---------------- LINKEDIN LOGIN ---------------- */
   const handleLinkedInLogin = () => {
     setError("");
+
     const url =
       `https://www.linkedin.com/oauth/v2/authorization?response_type=code` +
       `&client_id=${LINKEDIN_CLIENT_ID}` +
@@ -246,12 +250,14 @@ function Login() {
       });
 
       const { access, refresh } = res.data;
+
       setToken(access);
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
       await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate("/user");
+
+      navigate(redirectPath, { replace: true });
     } catch {
       setError("LinkedIn login failed");
       triggerShake();
@@ -260,43 +266,26 @@ function Login() {
     setLoading(false);
   };
 
+  /* ---------------- UI ---------------- */
   const shellModeClass = isSignUp ? "signup-mode" : "signin-mode";
 
   return (
     <>
-      <style>{`
-        @keyframes shake {
-          0% { transform: translateX(0); }
-          20% { transform: translateX(-6px); }
-          40% { transform: translateX(6px); }
-          60% { transform: translateX(-4px); }
-          80% { transform: translateX(4px); }
-          100% { transform: translateX(0); }
-        }
-        .animate-shake { animation: shake 0.35s ease-in-out; }
-      `}</style>
-
       <Suspense fallback={<LoginSkeleton />}>
         <div className="min-h-screen flex items-center justify-center px-4 md:px-6 py-10 bg-gray-100 dark:bg-black">
           <div
-            className={`
-              auth-shell w-full max-w-5xl bg-white dark:bg-neutral-900
-              rounded-3xl shadow-xl 
-              ${shakeForm ? "animate-shake" : ""} ${shellModeClass}
-            `}
+            className={`auth-shell w-full max-w-5xl bg-white dark:bg-neutral-900 rounded-3xl shadow-xl ${shakeForm ? "animate-shake" : ""
+              } ${shellModeClass}`}
           >
-            {/* GREEN PANEL */}
-            <div className="side side-panel">
-              <div className="panel-layer panel-bg" />
-              <div className="panel-layer panel-blob panel-blob-1" />
-              <div className="panel-layer panel-blob panel-blob-2" />
 
+            {/* LEFT PANEL */}
+            <div className="side side-panel">
               <div className="panel-content">
-                <h2 className="text-3xl md:text-4xl font-bold mb-3 text-white">
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
                   {isSignUp ? "Welcome Back!" : "Hello, Friend!"}
                 </h2>
 
-                <p className="opacity-90 mb-8 text-sm max-w-xs leading-relaxed text-white">
+                <p className="text-white opacity-80 mb-6 max-w-sm">
                   {isSignUp
                     ? "To keep connected with us please login with your personal info."
                     : "Enter your personal details and start your journey with us."}
@@ -307,34 +296,30 @@ function Login() {
                     setIsSignUp(!isSignUp);
                     setError("");
                   }}
-                  className="px-10 py-3 border border-white rounded-full font-semibold
-                             hover:bg-white hover:text-emerald-600 transition"
+                  className="px-10 py-3 border border-white rounded-full text-white hover:bg-white hover:text-emerald-600 transition"
                 >
                   {isSignUp ? "SIGN IN" : "SIGN UP"}
                 </button>
               </div>
             </div>
 
-            {/* FORM AREA */}
+            {/* RIGHT SIDE FORMS */}
             <div className="side side-form">
+
               {/* LOGIN FORM */}
               <div className="form-box signin">
-                <h2 className="text-3xl font-bold text-emerald-600 mb-6 text-center md:text-left">
+                <h2 className="text-3xl font-bold text-emerald-600 mb-6">
                   Sign In
                 </h2>
 
-                <div className="flex justify-center md:justify-start gap-4 mb-6">
-                  <SocialButtons
-                    googleBtnRef={googleBtnRef}
-                    setError={setError}
-                    handleFacebook={handleFacebookResponse}
-                    handleLinkedIn={handleLinkedInLogin}
-                  />
-                </div>
+                <SocialButtons
+                  googleBtnRef={googleBtnRef}
+                  setError={setError}
+                  handleFacebook={handleFacebookResponse}
+                  handleLinkedIn={handleLinkedInLogin}
+                />
 
-                <p className="text-gray-500 text-center md:text-left text-sm mb-6">
-                  or use your account
-                </p>
+                <p className="text-gray-500 text-sm mb-6">or use your account</p>
 
                 <form onSubmit={handleLogin} className="space-y-4">
                   <FloatingInput
@@ -346,7 +331,6 @@ function Login() {
                     }
                   />
 
-                  {/* SIMPLE PASSWORD FIELD */}
                   <PasswordField
                     label="Password"
                     simple={true}
@@ -357,28 +341,24 @@ function Login() {
                   />
 
                   {error && !isSignUp && (
-                    <p className="text-red-500 text-sm fade-in">{error}</p>
+                    <p className="text-red-500 text-sm">{error}</p>
                   )}
 
                   <button
                     disabled={!validLogin}
-                    className={`w-full py-3 rounded-lg font-semibold transition
-                      ${
-                        validLogin
-                          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
-                          : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                      }
-                    `}
+                    className={`w-full py-3 rounded-lg font-semibold transition ${validLogin
+                        ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      }`}
                   >
                     SIGN IN
                   </button>
                 </form>
 
-                {/* MOBILE SIGNUP LINK */}
-                <div className="mobile-auth-link text-center mt-4">
+                <div className="text-center mt-4 md:hidden">
                   <button
                     onClick={() => setIsSignUp(true)}
-                    className="underline text-emerald-600"
+                    className="text-emerald-600 underline"
                   >
                     Create an account
                   </button>
@@ -387,22 +367,18 @@ function Login() {
 
               {/* SIGNUP FORM */}
               <div className="form-box signup">
-                <h2 className="text-3xl font-bold mt-5 text-emerald-600 mb-6 text-center md:text-left">
+                <h2 className="text-3xl font-bold text-emerald-600 mb-6">
                   Create Account
                 </h2>
 
-                <div className="flex justify-center md:justify-start gap-4 mb-6">
-                  <SocialButtons
-                    googleBtnRef={googleBtnRef}
-                    setError={setError}
-                    handleFacebook={handleFacebookResponse}
-                    handleLinkedIn={handleLinkedInLogin}
-                  />
-                </div>
+                <SocialButtons
+                  googleBtnRef={googleBtnRef}
+                  setError={setError}
+                  handleFacebook={handleFacebookResponse}
+                  handleLinkedIn={handleLinkedInLogin}
+                />
 
-                <p className="text-gray-500 text-center md:text-left text-sm mb-6">
-                  or use your email for registration
-                </p>
+                <p className="text-gray-500 text-sm mb-6">or use your email</p>
 
                 <form onSubmit={handleSignup} className="space-y-4">
                   <FloatingInput
@@ -431,10 +407,7 @@ function Login() {
                     type="email"
                     value={signupData.email}
                     onChange={(e) =>
-                      setSignupData({
-                        ...signupData,
-                        email: e.target.value,
-                      })
+                      setSignupData({ ...signupData, email: e.target.value })
                     }
                   />
 
@@ -442,9 +415,9 @@ function Login() {
                     label="Password"
                     value={signupData.password}
                     onChange={(e) => {
-                      const value = e.target.value;
-                      setSignupData({ ...signupData, password: value });
-                      setSignupPasswordStrength(scorePassword(value));
+                      const v = e.target.value;
+                      setSignupData({ ...signupData, password: v });
+                      setSignupPasswordStrength(scorePassword(v));
                     }}
                     strength={signupPasswordStrength}
                   />
@@ -462,37 +435,33 @@ function Login() {
                   />
 
                   {error && isSignUp && (
-                    <p className="text-red-500 text-sm fade-in">{error}</p>
+                    <p className="text-red-500 text-sm">{error}</p>
                   )}
 
                   <button
                     disabled={!validSignup}
-                    className={`w-full py-3 rounded-lg font-semibold transition
-                      ${
-                        validSignup
-                          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
-                          : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                      }
-                    `}
+                    className={`w-full py-3 rounded-lg font-semibold transition ${validSignup
+                        ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      }`}
                   >
                     SIGN UP
                   </button>
                 </form>
 
-                {/* MOBILE LOGIN LINK */}
-                <div className="mobile-auth-link text-center mt-4">
+                <div className="text-center mt-4 md:hidden">
                   <button
                     onClick={() => setIsSignUp(false)}
-                    className="underline text-emerald-600"
+                    className="text-emerald-600 underline"
                   >
-                    Already have an account? Sign in
+                    Already have an account?
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* HIDDEN GOOGLE LOGIN */}
+          {/* HIDDEN GOOGLE BUTTON */}
           <div
             ref={googleBtnRef}
             style={{ height: 0, width: 0, overflow: "hidden" }}
@@ -501,7 +470,7 @@ function Login() {
               clientId={GOOGLE_CLIENT_ID}
               onSuccess={handleGoogleSuccess}
               onError={() => setError("Google login failed")}
-              useOneTap={false}
+              useOneTap={true}
             />
           </div>
         </div>
@@ -510,9 +479,7 @@ function Login() {
   );
 }
 
-/* ------------------------------------------------------------------
-   FLOATING INPUT
--------------------------------------------------------------------- */
+/* ---------------- INPUT COMPONENTS ---------------- */
 
 const FloatingInput = ({ label, type, value, onChange }) => {
   const active = value.length > 0;
@@ -525,138 +492,92 @@ const FloatingInput = ({ label, type, value, onChange }) => {
         type={type}
         value={value}
         onChange={onChange}
-        className={`
-          w-full px-4 pt-5 pb-2 bg-transparent border rounded-lg
-          dark:text-white text-black
-          outline-none transition-all duration-300
-          ${!active && !isInvalid ? "border-gray-500/40" : ""}
-          ${isValid ? "border-emerald-500 ring-2 ring-emerald-500/30" : ""}
-          ${isInvalid ? "border-red-500 ring-2 ring-red-500/30" : ""}
-          focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40
+        className={`w-full px-4 pt-5 pb-2 bg-transparent border rounded-lg transition-all
+          ${!active ? "border-gray-400/50" : ""}
+          ${isValid ? "border-emerald-500 ring-emerald-500/30 ring-2" : ""}
+          ${isInvalid ? "border-red-500 ring-red-500/30 ring-2" : ""}
         `}
       />
 
       <label
-        className={`
-          absolute left-4 px-1 bg-white dark:bg-neutral-900
-          transition-all duration-300 pointer-events-none
+        className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all pointer-events-none
           ${active ? "-top-3 text-xs font-semibold" : "top-3 text-gray-400"}
           ${isValid ? "text-emerald-600" : ""}
           ${isInvalid ? "text-red-500" : ""}
-          group-focus-within:-top-3 group-focus-within:text-xs group-focus-within:text-emerald-500
         `}
       >
         {label}
       </label>
-
-      {isInvalid && (
-        <p className="text-red-500 text-xs mt-1 fade-in">
-          Must be at least 4 characters
-        </p>
-      )}
     </div>
   );
 };
 
-/* ------------------------------------------------------------------
-   PASSWORD FIELD  (Corrected Version with simple={true})
--------------------------------------------------------------------- */
-
-
-function PasswordField({
-  label,
-  value,
-  onChange,
-  strength = null,
-  simple = false,
-}) {
-  const [showPassword, setShowPassword] = useState(false);
-
+function PasswordField({ label, value, onChange, strength = null, simple }) {
+  const [show, setShow] = useState(false);
   const active = value.length > 0;
   const isInvalid = active && value.length < 6 && !simple;
 
-  let strengthTextColor = "text-gray-400";
-  if (strength?.label === "Weak") strengthTextColor = "text-red-500";
-  else if (strength?.label === "Okay") strengthTextColor = "text-orange-500";
-  else if (strength?.label === "Strong") strengthTextColor = "text-green-500";
-  else if (strength?.label === "Very strong")
-    strengthTextColor = "text-emerald-500";
+  let strengthColor =
+    strength?.label === "Weak"
+      ? "text-red-500"
+      : strength?.label === "Okay"
+      ? "text-orange-500"
+      : strength?.label === "Strong"
+      ? "text-green-500"
+      : strength?.label === "Very strong"
+      ? "text-emerald-500"
+      : "text-gray-400";
 
-  const maxScore = 4;
-  const widthPercent = strength
-    ? (Math.min(strength.score, maxScore) / maxScore) * 100
-    : 0;
+  const width = strength ? (strength.score / 4) * 100 : 0;
 
   return (
     <div className="mb-4">
       <div className="relative group">
         <input
-          type={showPassword ? "text" : "password"}
+          type={show ? "text" : "password"}
           value={value}
           onChange={onChange}
-          className={`
-            w-full px-4 pt-5 pb-2 bg-transparent border rounded-lg
-            dark:text-white text-black
-            outline-none transition-all duration-300
-            ${!active && !isInvalid ? "border-gray-500/40" : ""}
-            ${isInvalid ? "border-red-500 ring-2 ring-red-500/30" : ""}
-            ${!simple && value.length >= 6 ? "border-green-500 ring-2 ring-green-500/30" : ""}
-            focus:border-green-500 focus:ring-2 focus:ring-green-500/40
+          className={`w-full px-4 pt-5 pb-2 bg-transparent border rounded-lg transition-all
+            ${!active ? "border-gray-400/50" : ""}
+            ${isInvalid ? "border-red-500 ring-red-500/30 ring-2" : ""}
+            ${!simple && value.length >= 6 ? "border-green-500 ring-green-500/30 ring-2" : ""}
           `}
         />
 
-        {/* Label */}
         <label
-          className={`
-            absolute left-4 px-1 bg-white dark:bg-neutral-900
-            transition-all duration-300 pointer-events-none
-            ${active ? "-top-3 text-xs font-semibold" : "top-3 text-gray-400"}
+          className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all pointer-events-none
+            ${active ? "-top-3 text-xs" : "top-3 text-gray-400"}
             ${isInvalid ? "text-red-500" : ""}
-            group-focus-within:-top-3 group-focus-within:text-xs group-focus-within:text-green-500
           `}
         >
           {label}
         </label>
 
-        {/* Show / hide */}
         <span
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-white transition"
+          onClick={() => setShow(!show)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
         >
-          {showPassword ? <FaEyeSlash /> : <FaEye />}
+          {show ? <FaEyeSlash /> : <FaEye />}
         </span>
       </div>
 
-      {/* Strength Meter (signup only) */}
-      {!simple && value.length > 0 && (
-        <div className="mt-2 fade-in">
-          <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+      {!simple && value && (
+        <div className="mt-2">
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-400 to-green-500 transition-all duration-300"
-              style={{ width: `${widthPercent}%` }}
+              className="h-full bg-gradient-to-r from-red-500 to-green-500 transition-all"
+              style={{ width: `${width}%` }}
             />
           </div>
 
-          <p
-            className={`mt-1 text-xs font-medium ${strengthTextColor}`}
-          >
+          <p className={`text-xs mt-1 ${strengthColor}`}>
             {strength.label || "Too short"}
           </p>
         </div>
       )}
-
-      {isInvalid && !simple && (
-        <p className="text-red-500 text-xs mt-1 fade-in">
-          Password must be at least 6 characters
-        </p>
-      )}
     </div>
   );
 }
-
-/* ------------------------------------------------------------------
-   CONFIRM PASSWORD FIELD
--------------------------------------------------------------------- */
 
 const PasswordConfirmField = ({ label, value, onChange, password }) => {
   const active = value.length > 0;
@@ -670,23 +591,15 @@ const PasswordConfirmField = ({ label, value, onChange, password }) => {
           type="password"
           value={value}
           onChange={onChange}
-          className={`
-            w-full px-4 pt-5 pb-2 bg-transparent border rounded-lg
-            outline-none transition-all
-            ${
-              isMatch && active
-                ? "border-emerald-500 ring-2 ring-emerald-500/30"
-                : "border-gray-500/40"
-            }
-            ${isInvalid ? "border-red-500 ring-red-500/30" : ""}
+          className={`w-full px-4 pt-5 pb-2 border rounded-lg transition-all
+            ${isMatch ? "border-emerald-500 ring-emerald-500/30 ring-2" : "border-gray-400/50"}
+            ${isInvalid ? "border-red-500 ring-red-500/30 ring-2" : ""}
           `}
         />
 
         <label
-          className={`
-            absolute left-4 px-1 bg-white dark:bg-neutral-900
-            transition-all duration-300 pointer-events-none
-            ${active ? "-top-3 text-xs font-semibold" : "top-3 text-gray-400"}
+          className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all pointer-events-none
+            ${active ? "-top-3 text-xs" : "top-3 text-gray-400"}
           `}
         >
           {label}
@@ -694,33 +607,25 @@ const PasswordConfirmField = ({ label, value, onChange, password }) => {
       </div>
 
       {isInvalid && (
-        <p className="text-red-500 text-xs mt-1 fade-in">
-          Passwords do not match
-        </p>
+        <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
       )}
     </div>
   );
 };
 
-/* ------------------------------------------------------------------
-   SOCIAL BUTTONS
--------------------------------------------------------------------- */
-
+/* ---------------- SOCIAL BUTTONS ---------------- */
 const SocialButtons = ({
   googleBtnRef,
   setError,
   handleFacebook,
   handleLinkedIn,
 }) => (
-  <div className="flex gap-6 mb-6 justify-center md:justify-start items-center">
-    {/* GOOGLE */}
+  <div className="flex gap-6 mb-6 justify-center md:justify-start">
     <AnimatedSocialButton
       color="#DB4437"
       onClick={() => {
         setError("");
-        googleBtnRef.current
-          ?.querySelector("div[role='button']")
-          ?.click();
+        googleBtnRef.current?.querySelector("div[role='button']")?.click();
       }}
       icon={
         <img
@@ -731,7 +636,6 @@ const SocialButtons = ({
       }
     />
 
-    {/* FACEBOOK */}
     <FacebookLogin
       appId="1960201038102026"
       fields="name,email,picture"
@@ -748,13 +652,9 @@ const SocialButtons = ({
       )}
     />
 
-    {/* LINKEDIN */}
     <AnimatedSocialButton
       color="#0A66C2"
-      onClick={() => {
-        setError("");
-        handleLinkedIn();
-      }}
+      onClick={handleLinkedIn}
       icon={<FaLinkedin className="text-lg" />}
     />
   </div>
@@ -763,8 +663,7 @@ const SocialButtons = ({
 const AnimatedSocialButton = ({ icon, color, onClick }) => (
   <button
     onClick={onClick}
-    className="flex items-center justify-center p-4 rounded-full border border-gray-300 dark:border-gray-500 bg-white/80 dark:bg-neutral-800/80 shadow-sm
-               transition-all duration-300 hover:scale-125 hover:shadow-[0_0_18px_rgba(16,185,129,0.5)] active:scale-95"
+    className="p-4 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-neutral-800 hover:scale-125 transition shadow"
     style={{ color }}
   >
     {icon}

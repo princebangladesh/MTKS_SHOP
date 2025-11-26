@@ -18,44 +18,31 @@ function ProductLand({ product }) {
     setTimeout(() => setToast(null), 2500);
   };
 
-  // Variant fix
   const variant = product?.variants?.length ? product.variants[0] : null;
 
-  // Category fix
   const categoryName =
     product?.category_name ||
     product?.category?.name ||
     "Category";
 
-  // Image fix
-  const getDisplayImage = () => {
-    const placeholder = "https://via.placeholder.com/300x200?text=No+Image";
-    return (
-      variant?.image ||
-      product?.image1 ||
-      product?.image ||
-      placeholder
-    );
-  };
+  const placeholder = "https://via.placeholder.com/300x200?text=No+Image";
 
-  const displayImage = getDisplayImage();
+  const displayImage =
+    variant?.image ||
+    product?.image1 ||
+    product?.image ||
+    placeholder;
 
-  // Price fix
   const displayPrice = Number(
-    variant?.price ??
-    product?.current_price ??
-    0
+    variant?.price ?? product?.current_price ?? 0
   );
 
   const displayOldPrice = Number(
-    variant?.previous_price ??
-    product?.previous_price ??
-    0
+    variant?.previous_price ?? product?.previous_price ?? 0
   );
 
   const productName = product?.name || "Unnamed Product";
 
-  // Add to cart
   const handleAdd = () => {
     const payload = variant
       ? { productId: product.id, variant, productData: product }
@@ -65,7 +52,6 @@ function ProductLand({ product }) {
     showToast("Added to Cart", productName, "success");
   };
 
-  // Add to wishlist
   const handleWishlist = () => {
     if (isInWishlist(product.id)) {
       showToast("Already in Wishlist", productName, "info");
@@ -77,7 +63,7 @@ function ProductLand({ product }) {
 
   return (
     <div className="
-      product-box bg-white dark:bg-black p-4 
+      product-box bg-white dark:bg-black p-3 
       hover:shadow-xl rounded-xl overflow-hidden 
       group flex flex-col justify-between
     ">
@@ -85,29 +71,29 @@ function ProductLand({ product }) {
       {/* IMAGE SECTION */}
       <div className="relative cursor-pointer flex justify-center items-center overflow-hidden">
 
-        {/* DESKTOP HOVER ICONS */}
+        {/* DESKTOP ICONS */}
         <div className="
           absolute hidden md:flex flex-col 
-          top-[15%] right-[-50%] opacity-0 
+          top-[15%] right-[-60%] opacity-0 
           md:group-hover:right-3 md:group-hover:opacity-100 
           transition-all duration-300 z-10
         ">
           <button
-            className="p-4 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700 transition"
+            className="p-3 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700"
             onClick={handleWishlist}
           >
-            <CiHeart size={24} />
+            <CiHeart size={22} />
           </button>
 
-          <button className="p-4 mb-2 bg-brandGreen text-white rounded shadow">
-            <BiRefresh size={24} />
+          <button className="p-3 mb-2 bg-brandGreen text-white rounded shadow">
+            <BiRefresh size={22} />
           </button>
 
           <button
-            className="p-4 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700 transition"
+            className="p-3 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700"
             onClick={() => navigate(`/product/${product.id}`)}
           >
-            <CiSearch size={24} />
+            <CiSearch size={22} />
           </button>
         </div>
 
@@ -115,45 +101,45 @@ function ProductLand({ product }) {
           src={displayImage}
           alt={productName}
           className="
-            w-full h-[220px] object-cover 
+            w-full h-[160px] object-cover 
             transition-all duration-500  
             md:group-hover:scale-110 rounded-lg
           "
+          onClick={() => navigate(`/product/${product.id}`)}
         />
       </div>
 
-      {/* MOBILE STATIC ICONS */}
-      <div className="flex md:hidden justify-center gap-4 mt-3">
+      {/* MOBILE ACTION ICONS */}
+      <div className="flex md:hidden justify-center gap-3 mt-3">
         <button
-          className="p-3 bg-brandGreen text-white rounded shadow"
+          className="p-2 bg-brandGreen text-white rounded shadow"
           onClick={handleWishlist}
         >
-          <CiHeart size={22} />
+          <CiHeart size={20} />
         </button>
 
-        <button className="p-3 bg-brandGreen text-white rounded shadow">
-          <BiRefresh size={22} />
+        <button className="p-2 bg-brandGreen text-white rounded shadow">
+          <BiRefresh size={20} />
         </button>
 
         <button
-          className="p-3 bg-brandGreen text-white rounded shadow"
+          className="p-2 bg-brandGreen text-white rounded shadow"
           onClick={() => navigate(`/product/${product.id}`)}
         >
-          <CiSearch size={22} />
+          <CiSearch size={20} />
         </button>
 
         <button
-          className="p-3 bg-brandGreen text-white rounded shadow"
+          className="p-2 bg-brandGreen text-white rounded shadow"
           onClick={handleAdd}
         >
-          <FaCartPlus size={22} />
+          <FaCartPlus size={20} />
         </button>
       </div>
 
       {/* TEXT SECTION */}
-      <div className="text py-3 pr-3">
+      <div className="text py-3 pr-2">
 
-        {/* Category + Rating */}
         <div className="flex justify-between items-center">
           <Link to={`/category/${product.category_slug}`}>
             <span className="text-sm text-gray-500 dark:text-gray-300">
@@ -170,10 +156,9 @@ function ProductLand({ product }) {
           </p>
         </div>
 
-        {/* Product Name */}
         <h3
           className="
-            text-[16px] font-semibold 
+            text-[15px] font-semibold 
             dark:text-white leading-tight mt-2 
             cursor-pointer
           "
@@ -182,7 +167,7 @@ function ProductLand({ product }) {
           {productName}
         </h3>
 
-        {/* PRICE SECTION */}
+        {/* PRICE */}
         <div className="pricing mt-2 flex justify-between items-center relative">
           <div className="flex gap-2 items-center">
             <span className="text-brandGreen dark:text-green-300 font-semibold">
@@ -196,16 +181,15 @@ function ProductLand({ product }) {
             )}
           </div>
 
-          {/* DESKTOP CART ICON */}
           <button
             onClick={handleAdd}
             className="
-              hidden md:block absolute right-[-50%] 
+              hidden md:block absolute right-[-60%] 
               md:group-hover:right-1 transition-all duration-300 
               text-black dark:text-white
             "
           >
-            <FaCartPlus size="1.4rem" />
+            <FaCartPlus size="1.3rem" />
           </button>
         </div>
 

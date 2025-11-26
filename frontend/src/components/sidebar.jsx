@@ -180,7 +180,7 @@ function Sidebar({ ActiveSide, setActiveSide, handleBar }) {
               <li>
                 <Link
                   onClick={handleItemClick}
-                  to="/user"
+                  to="/login"
                   className="flex items-center gap-x-3 py-2 px-3 
                     bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white rounded-lg 
                     hover:bg-gray-200 dark:hover:bg-neutral-700"

@@ -10,6 +10,7 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
+  const [order, setOrder] = useState(null);
 
   const [userInfo, setUserInfo] = useState({
     first_name: "",
@@ -69,15 +70,12 @@ const CheckoutPage = () => {
     const { name, value } = e.target;
     setErrors((prev) => ({ ...prev, [name]: "" }));
 
-    if (!group)
-      setUserInfo((p) => ({ ...p, [name]: value }));
-    else
-      setShipping((p) => ({ ...p, [name]: value }));
+    if (!group) setUserInfo((p) => ({ ...p, [name]: value }));
+    else setShipping((p) => ({ ...p, [name]: value }));
   };
 
   /* --------------------------------------------------
      VALIDATION
-     Adds red borders to empty fields
   -------------------------------------------------- */
   const validateStep1 = () => {
     let err = {};
@@ -103,72 +101,83 @@ const CheckoutPage = () => {
   const goBack = () => setStep(1);
 
   /* --------------------------------------------------
-     PLACE ORDER
+     PLACE ORDER → STEP 3 THEN STEP 4
   -------------------------------------------------- */
   const handlePlaceOrder = async () => {
-    const makeAddress = (a) =>
-      `${a.street}, ${a.apt}, ${a.state}, ${a.zip}`;
+    setStep(3); // Show "Processing..."
 
-    const items = cart.map((item) => ({
-      variant_id:
-        item.variant_id ??
-        item.variant?.id ??
-        item.default_variant_id ??
-        null,
-      product_id:
-        item.variant?.product?.id ??
-        item.product?.id ??
-        null,
-      quantity: item.quantity,
-      price:
-        parseFloat(item.variant?.price) ||
-        parseFloat(item.product?.current_price) ||
-        0,
-    }));
+    setTimeout(async () => {
+      const makeAddress = (a) => `${a.street}, ${a.apt}, ${a.state}, ${a.zip}`;
 
-    const payload = {
-      shipping_address: makeAddress(shipping),
-      billing_address: makeAddress(shipping),
-      total_price: subtotal,
-      items,
-    };
+      const items = cart.map((item) => ({
+        variant_id:
+          item.variant_id ??
+          item.variant?.id ??
+          item.default_variant_id ??
+          null,
+        product_id:
+          item.variant?.product?.id ??
+          item.product?.id ??
+          null,
+        quantity: item.quantity,
+        price:
+          parseFloat(item.variant?.price) ||
+          parseFloat(item.product?.current_price) ||
+          0,
+      }));
 
-    try {
-      const res = await api.post("/orders/", payload);
-      clearCart();
-      navigate(`/order-success/${res.data.order_id}`);
-    } catch (err) {
-      console.error("Order failed:", err.response?.data);
-      alert("Order failed!");
-    }
+      const payload = {
+        shipping_address: makeAddress(shipping),
+        billing_address: makeAddress(shipping),
+        total_price: subtotal,
+        items,
+      };
+
+      try {
+        const res = await api.post("/orders/", payload);
+
+        clearCart();
+        setOrder(res.data);
+
+        setStep(4); // Move to final step
+      } catch (err) {
+        console.error("Order failed:", err.response?.data);
+        alert("Order failed!");
+        setStep(2);
+      }
+    }, 2000);
   };
 
   if (loading)
     return <div className="text-center p-10">Loading checkout...</div>;
 
   /* --------------------------------------------------
-     UI
+     UI SLIDER (4 STEPS → 400%)
   -------------------------------------------------- */
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex justify-center py-10 px-4">
       <div className="relative max-w-4xl w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
 
-        {/* Horizontal Sliding Wrapper */}
+        {/* Slider Wrapper */}
         <div
-          className="flex w-[200%] transition-transform duration-700"
+          className="flex w-[400%] transition-transform duration-700"
           style={{
-            transform: step === 1 ? "translateX(0%)" : "translateX(-50%)",
+            transform:
+              step === 1 ? "translateX(0%)" :
+              step === 2 ? "translateX(-25%)" :
+              step === 3 ? "translateX(-50%)" :
+              "translateX(-75%)",
           }}
         >
+
           {/* --------------------------------------------------
-             STEP 1 — SHIPPING FORM
+              STEP 1 — SHIPPING FORM
           -------------------------------------------------- */}
-          <div className="w-1/2 p-8">
+          <div className="w-1/4 p-8">
             <h2 className="text-2xl font-bold mb-6 dark:text-white">
               Shipping Details
             </h2>
 
-            {/* CONTACT NAME */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <input
                 name="first_name"
@@ -191,7 +200,6 @@ const CheckoutPage = () => {
               />
             </div>
 
-            {/* EMAIL */}
             <input
               name="email"
               placeholder="Email"
@@ -202,7 +210,6 @@ const CheckoutPage = () => {
               }`}
             />
 
-            {/* PHONE */}
             <input
               name="phone_number"
               placeholder="Phone Number"
@@ -213,7 +220,6 @@ const CheckoutPage = () => {
               }`}
             />
 
-            {/* SHIPPING ADDRESS */}
             <h3 className="text-lg font-semibold mb-2 dark:text-white">
               Shipping Address
             </h3>
@@ -231,11 +237,12 @@ const CheckoutPage = () => {
             <div className="grid grid-cols-3 gap-3 mb-4">
               <input
                 name="apt"
-                placeholder="Apt / Suite (optional)"
+                placeholder="Apt / Suite"
                 value={shipping.apt}
                 onChange={(e) => input(e, "ship")}
                 className="border p-2 rounded dark:bg-gray-700 dark:text-white"
               />
+
               <input
                 name="state"
                 placeholder="State"
@@ -245,6 +252,7 @@ const CheckoutPage = () => {
                   errors.state ? "border-red-500" : ""
                 }`}
               />
+
               <input
                 name="zip"
                 placeholder="ZIP"
@@ -265,14 +273,13 @@ const CheckoutPage = () => {
           </div>
 
           {/* --------------------------------------------------
-             STEP 2 — REVIEW ORDER
+              STEP 2 — REVIEW ORDER
           -------------------------------------------------- */}
-          <div className="w-1/2 p-8">
+          <div className="w-1/4 p-8">
             <h2 className="text-2xl font-bold mb-6 dark:text-white">
               Review & Place Order
             </h2>
 
-            {/* CART ITEMS */}
             <div className="space-y-4">
               {cart.map((item, i) => {
                 const name =
@@ -326,16 +333,18 @@ const CheckoutPage = () => {
               })}
             </div>
 
-            {/* TOTALS */}
             <div className="text-right mt-6 dark:text-gray-200">
-              <p>Subtotal: <strong>${subtotal.toFixed(2)}</strong></p>
-              <p>Tax (10%): <strong>${tax.toFixed(2)}</strong></p>
+              <p>
+                Subtotal: <strong>${subtotal.toFixed(2)}</strong>
+              </p>
+              <p>
+                Tax (10%): <strong>${tax.toFixed(2)}</strong>
+              </p>
               <p className="text-xl mt-2">
                 Grand Total: <strong>${total.toFixed(2)}</strong>
               </p>
             </div>
 
-            {/* BUTTONS */}
             <div className="flex justify-between mt-8">
               <button
                 onClick={goBack}
@@ -352,6 +361,83 @@ const CheckoutPage = () => {
               </button>
             </div>
           </div>
+
+          {/* --------------------------------------------------
+              STEP 3 — PROCESSING (2 SECONDS)
+          -------------------------------------------------- */}
+          <div className="w-1/4 p-8 flex flex-col items-center justify-center">
+            <svg
+              className="w-20 h-20 animate-spin text-blue-600 mb-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="12" r="10" strokeOpacity="0.3" />
+              <path d="M12 2a10 10 0 0 1 10 10" />
+            </svg>
+
+            <h2 className="text-2xl font-bold dark:text-white mb-2">
+              Processing Your Order...
+            </h2>
+
+            <p className="text-gray-600 dark:text-gray-300">
+              Please wait a moment.
+            </p>
+          </div>
+
+          {/* --------------------------------------------------
+              STEP 4 — SUCCESS
+          -------------------------------------------------- */}
+          <div className="w-1/4 p-8 flex flex-col items-center justify-center text-center">
+            <svg
+              className="w-20 h-20 text-green-600 mb-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12l2 2 4-4M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"
+              />
+            </svg>
+
+            <h2 className="text-2xl font-bold dark:text-white mb-2">
+              Order Placed Successfully!
+            </h2>
+
+            {order && (
+              <div className="bg-green-50 border p-4 rounded-lg text-left w-full max-w-sm mb-6">
+                <p>
+                  <strong>Order ID:</strong> #{order.order_id}
+                </p>
+                <p>
+                  <strong>Total:</strong> $
+                  {Number(order.total_price).toFixed(2)}
+                </p>
+                <p>
+                  <strong>Status:</strong> {order.status_display}
+                </p>
+                <p>
+                  <strong>Date:</strong>{" "}
+                  {new Date(order.created_at).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Items:</strong> {order.items?.length}
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={() => navigate("/")}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Continue Shopping
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
