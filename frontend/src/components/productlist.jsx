@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 import { FaTh, FaList, FaFilter } from "react-icons/fa";
 import PlSidebar from "./shared/plsidebar";
 import ProductListView from "./shared/productlistview";
@@ -15,42 +15,62 @@ import {
 } from "./utils/sidebarfunction";
 
 function ProductList({ products }) {
+  /* -------------------------------
+     Prices for range filtering
+  -------------------------------- */
   const prices = products.map((p) =>
-    p.variants?.length ? Number(p.variants[0].price) : Number(p.display_price ?? 0)
+    p.variants?.length
+      ? Number(p.variants[0].price)
+      : Number(p.display_price ?? 0)
   );
 
   const minprice = Math.min(...prices);
   const maxprice = Math.max(...prices);
 
-  const [minVal, setMinVal] = useState(minprice);
-  const [maxVal, setMaxVal] = useState(maxprice);
+  const [minVal, setMinVal] = React.useState(minprice);
+  const [maxVal, setMaxVal] = React.useState(maxprice);
 
-  const [sortOption, setSortOption] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [sortOption, setSortOption] = React.useState("");
+  const [selectedCategories, setSelectedCategories] = React.useState([]);
+  const [selectedBrands, setSelectedBrands] = React.useState([]);
 
-  const [showCount, setShowCount] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [view, setView] = useState("list"); // grid = "grid"
-  const [displayedProducts, setDisplayedProducts] = useState([]);
-  const [priceFilteredProducts, setPriceFilteredProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [showCount, setShowCount] = React.useState(10);
+  const [currentPage, setCurrentPage] = React.useState(1);
+
+  /* ---------------------------------------------
+     FIXED: Persist View Mode using localStorage
+  ---------------------------------------------- */
+  const [view, setView] = React.useState(() => {
+    return localStorage.getItem("productView") || "grid"; // load saved mode
+  });
+
+  const isGridView = view === "grid";
+
+  React.useEffect(() => {
+    localStorage.setItem("productView", view); // save mode
+  }, [view]);
+
+  /* ------------------------------- */
+  const [displayedProducts, setDisplayedProducts] = React.useState([]);
+  const [priceFilteredProducts, setPriceFilteredProducts] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
   const totalPages = Math.ceil(products.length / showCount);
-  const isGridView = view === "list";
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
+  React.useEffect(() => {
     setMinVal(minprice);
     setMaxVal(maxprice);
   }, [minprice, maxprice]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setPriceFilteredProducts([]);
   }, [currentPage, showCount, products]);
 
-  const filteredProducts = useMemo(() => {
+  /* -------------------------------
+     Product Filtering
+  -------------------------------- */
+  const filteredProducts = React.useMemo(() => {
     let result =
       priceFilteredProducts.length > 0
         ? [...priceFilteredProducts]
@@ -68,28 +88,41 @@ function ProductList({ products }) {
       );
     }
 
-    // Sort Logic
     switch (sortOption) {
       case "name-asc":
         result.sort((a, b) => a.name.localeCompare(b.name));
         break;
+
       case "name-desc":
         result.sort((a, b) => b.name.localeCompare(a.name));
         break;
-      case "price-asc":
+
+      case "price-asc": {
         result.sort((a, b) => {
-          const p1 = a.variants?.length ? Number(a.variants[0].price) : a.display_price;
-          const p2 = b.variants?.length ? Number(b.variants[0].price) : b.display_price;
+          const p1 = a.variants?.length
+            ? Number(a.variants[0].price)
+            : a.display_price;
+          const p2 = b.variants?.length
+            ? Number(b.variants[0].price)
+            : b.display_price;
           return p1 - p2;
         });
         break;
-      case "price-desc":
+      }
+
+      case "price-desc": {
         result.sort((a, b) => {
-          const p1 = a.variants?.length ? Number(a.variants[0].price) : a.display_price;
-          const p2 = b.variants?.length ? Number(b.variants[0].price) : b.display_price;
+          const p1 = a.variants?.length
+            ? Number(a.variants[0].price)
+            : a.display_price;
+          const p2 = b.variants?.length
+            ? Number(b.variants[0].price)
+            : b.display_price;
           return p2 - p1;
         });
         break;
+      }
+
       default:
         break;
     }
@@ -103,9 +136,12 @@ function ProductList({ products }) {
     sortOption,
   ]);
 
-  useEffect(() => {
+  /* -------------------------------
+     Page Loading Trigger
+  -------------------------------- */
+  React.useEffect(() => {
     setLoading(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0 });
 
     loadProducts(
       products,
@@ -116,6 +152,9 @@ function ProductList({ products }) {
     );
   }, [products, currentPage, showCount]);
 
+  /* -------------------------------
+     Price Filter
+  -------------------------------- */
   const handlePriceFilter = () => {
     setLoading(true);
 
@@ -133,6 +172,9 @@ function ProductList({ products }) {
     }, 300);
   };
 
+  /* ===========================================
+     RETURN UI
+  ============================================ */
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
 
@@ -204,10 +246,13 @@ function ProductList({ products }) {
 
           {/* View Switch */}
           <div className="flex items-center space-x-2">
+            {/* GRID */}
             <button
-              onClick={() => handleViewChange("list", view, setView, setLoading)}
+              onClick={() =>
+                handleViewChange("grid", view, setView, setLoading)
+              }
               className={`p-2 rounded ${
-                view === "list"
+                view === "grid"
                   ? "bg-brandGreen text-white"
                   : "bg-gray-200 dark:bg-black dark:text-white"
               }`}
@@ -215,10 +260,13 @@ function ProductList({ products }) {
               <FaTh />
             </button>
 
+            {/* LIST */}
             <button
-              onClick={() => handleViewChange("grid", view, setView, setLoading)}
+              onClick={() =>
+                handleViewChange("list", view, setView, setLoading)
+              }
               className={`p-2 rounded ${
-                view === "grid"
+                view === "list"
                   ? "bg-brandGreen text-white"
                   : "bg-gray-200 dark:bg-black dark:text-white"
               }`}
@@ -227,17 +275,18 @@ function ProductList({ products }) {
             </button>
           </div>
 
-          {/* Count */}
+          {/* Product Count */}
           <p className="text-sm text-gray-600 dark:text-gray-300">
             {products.length} items found
           </p>
 
-          {/* Controls */}
+          {/* Sort */}
           <div className="flex flex-wrap gap-3">
-
             <select
               value={showCount}
-              onChange={(e) => handleShowChange(e, setShowCount, setCurrentPage)}
+              onChange={(e) =>
+                handleShowChange(e, setShowCount, setCurrentPage)
+              }
               className="border p-2 text-sm rounded dark:bg-black dark:text-white"
             >
               <option value={10}>10</option>
@@ -259,11 +308,15 @@ function ProductList({ products }) {
           </div>
         </div>
 
-        {/* PRODUCT GRID */}
+        {/* PRODUCT GRID OR LIST */}
         <div
           className={
             isGridView
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              ? `
+                grid gap-6
+                auto-rows-fr
+                grid-cols-[repeat(auto-fit,minmax(170px,1fr))]
+              `
               : "space-y-6"
           }
         >
@@ -272,7 +325,7 @@ function ProductList({ products }) {
                 <ProductListSkeleton key={index} />
               ))
             : filteredProducts.map((item) => (
-                <div key={item.id}>
+                <div key={item.id} className="h-full flex">
                   {isGridView ? (
                     <ProductLand product={item} />
                   ) : (
@@ -287,7 +340,9 @@ function ProductList({ products }) {
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            onNext={() => goToNextPage(currentPage, totalPages, setCurrentPage)}
+            onNext={() =>
+              goToNextPage(currentPage, totalPages, setCurrentPage)
+            }
             onPrevious={() => goToPreviousPage(currentPage, setCurrentPage)}
           />
         )}

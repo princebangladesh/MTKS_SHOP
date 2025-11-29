@@ -1,42 +1,26 @@
 import React from "react";
 import FacebookLogin from "react-facebook-login/dist/facebook-login-render-props";
-import { FaFacebookF, FaLinkedin } from "react-icons/fa6";
+import { FaFacebookF, FaLinkedin } from "react-icons/fa";
+import AnimatedSocialButton from "./AnimatedSocialButton";
 
-/* ------------------------------
-   Animated Social Button Wrapper
------------------------------- */
-const AnimatedButton = ({ icon, color, onClick }) => (
-  <button
-    onClick={onClick}
-    className="
-      flex items-center justify-center 
-      p-4 rounded-full border border-gray-300 dark:border-gray-500
-      bg-white/80 dark:bg-neutral-800/80 
-      shadow-sm transition-all duration-300
-      hover:scale-125 hover:shadow-[0_0_15px_rgba(16,185,129,0.6)]
-      active:scale-95
-    "
-    style={{ color }}
-  >
-    {icon}
-  </button>
-);
-
-/* ------------------------------
-    Social Buttons Row Component
------------------------------- */
-function SocialButtons({
+export default function SocialButtons({
   googleBtnRef,
+  setError,
   handleFacebook,
   handleLinkedIn,
-  setError,
+  handleGoogleSuccess,
 }) {
   return (
-    <div className="flex gap-6 mb-6 justify-center items-center">
-
-      {/* GOOGLE BUTTON (custom animated icon triggers hidden button) */}
-      <AnimatedButton
+    <div className="flex gap-6 mb-6 justify-center md:justify-start items-center">
+      
+      {/* GOOGLE */}
+      <AnimatedSocialButton
         color="#DB4437"
+        onClick={() => {
+          setError("");
+          const btn = googleBtnRef.current?.querySelector("div[role='button']");
+          if (btn) btn.click();
+        }}
         icon={
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -44,42 +28,31 @@ function SocialButtons({
             alt="Google"
           />
         }
-        onClick={() => {
-          setError("");
-          googleBtnRef.current
-            ?.querySelector("div[role='button']")
-            ?.click();
-        }}
       />
 
-      {/* FACEBOOK LOGIN */}
+      {/* FACEBOOK */}
       <FacebookLogin
         appId="1960201038102026"
         fields="name,email,picture"
         callback={handleFacebook}
         render={(props) => (
-          <AnimatedButton
+          <AnimatedSocialButton
             color="#1877F2"
-            icon={<FaFacebookF className="text-lg" />}
             onClick={() => {
               setError("");
               props.onClick();
             }}
+            icon={<FaFacebookF className="text-lg" />}
           />
         )}
       />
 
       {/* LINKEDIN */}
-      <AnimatedButton
+      <AnimatedSocialButton
         color="#0A66C2"
+        onClick={handleLinkedIn}
         icon={<FaLinkedin className="text-lg" />}
-        onClick={() => {
-          setError("");
-          handleLinkedIn();
-        }}
       />
     </div>
   );
 }
-
-export default SocialButtons;

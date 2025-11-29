@@ -5,6 +5,7 @@ import Dashboard from "./Dashboard";
 import Sidebar from "./Sidebar";
 import Profile from "./Profile";
 import ChangePasswordForm from "./change_password";
+import Wishlist from "./WishList";
 
 export default function UserProfile() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -38,6 +39,10 @@ export default function UserProfile() {
         {activeTab === "profile" && (
           <Profile />
         )}
+        {activeTab === "wishlist" && (
+          <Wishlist />
+        )}
+
 
         {activeTab === "password" && (
           <ChangePasswordForm setActiveTab={setActiveTab} />

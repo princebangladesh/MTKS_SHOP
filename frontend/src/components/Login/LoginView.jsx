@@ -1,38 +1,39 @@
+// LoginView.jsx
 import React from "react";
-import FloatingInput from "./FloatingInput";
-import PasswordField from "./PasswordField";
-import SocialButtons from "./SocialButtons";
+import FloatingInput from "./inputs/FloatingInput";
+import PasswordField from "./inputs/PasswordField";
+import SocialButtons from "./social/SocialButtons";
 
-function LoginForm({
+export default function LoginView({
+  googleBtnRef,
+  handleLogin,
+  handleFacebook,
+  handleGoogleSuccess,
+  handleLinkedIn,
   loginData,
   setLoginData,
-  handleLogin,
   validLogin,
-  googleBtnRef,
-  handleGoogleSuccess,
-  handleFacebook,
-  handleLinkedIn,
   error,
-  setError,
+  setIsSignUp,
   setIsResetStep,
   setResetStep,
+  setError,
   setSlide,
-  setIsSignUp,
 }) {
   return (
-    <div className="login-form animate-fade">
+    <>
       <h2 className="text-3xl font-bold text-emerald-600 mb-6 text-center md:text-left">
         Sign In
       </h2>
 
-      {/* SOCIAL BUTTONS */}
+      {/* SOCIAL LOGIN BUTTONS */}
       <div className="flex justify-center md:justify-start gap-4 mb-6">
         <SocialButtons
           googleBtnRef={googleBtnRef}
+          setError={setError}
           handleFacebook={handleFacebook}
           handleLinkedIn={handleLinkedIn}
           handleGoogleSuccess={handleGoogleSuccess}
-          setError={setError}
         />
       </div>
 
@@ -40,12 +41,15 @@ function LoginForm({
         or use your account
       </p>
 
+      {/* LOGIN FORM */}
       <form onSubmit={handleLogin} className="space-y-4">
         <FloatingInput
           label="Email or Username"
           type="text"
           value={loginData.email}
-          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+          onChange={(e) =>
+            setLoginData({ ...loginData, email: e.target.value })
+          }
         />
 
         <PasswordField
@@ -57,7 +61,6 @@ function LoginForm({
           }
         />
 
-        {/* Forgot Password */}
         <div className="text-right -mt-1">
           <button
             type="button"
@@ -76,7 +79,7 @@ function LoginForm({
           </button>
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm fade-in">{error}</p>}
 
         <button
           disabled={!validLogin}
@@ -98,8 +101,6 @@ function LoginForm({
           Create an account
         </button>
       </div>
-    </div>
+    </>
   );
 }
-
-export default LoginForm;

@@ -23,10 +23,16 @@ import OrderList from './components/UserProfile/OrderList.jsx';
 import OrderDetails from './components/UserProfile/orderdetails.jsx';
 import Shop from './components/shop.jsx';
 import Login from './components/Login/login.jsx';
+import ResetPassword from './components/Login/ResetPassword.jsx';
+import VerifyEmail from './components/Login/VerifyEmail.jsx';
+import FAQ from './components/Faq.jsx';
+import ScrollToTop from './components/shared/ScrollToTop.jsx';
 function App() {
   return (
     <Router>
+      
       <div className='dark:bg-black scroll-smooth bg-brandWhite-200'>
+      <ScrollToTop/>
       <Navbar/>
       <Routes>
       <Route path="" element={<Home />} />
@@ -47,6 +53,11 @@ function App() {
       <Route path="/brands/:slug" element={<BrandListProduct />} />
       <Route path="/category/:slug" element={<CategoryList />} />
       <Route path="/shop" element={<Shop />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/faq" element={<FAQ />} />
+
+      
       
       </Routes>
       

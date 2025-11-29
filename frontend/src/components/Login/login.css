@@ -150,9 +150,57 @@
 
 .auth-shell.signup-mode .form-box.signup {
   opacity: 1;
-  transform: translate(0, -50%);
+  transform: translate(-100%, -50%);
   pointer-events: auto;
 }
+.slide-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.slide-panel {
+  width: 100%;
+  transition: transform 0.45s ease-in-out, opacity 0.45s ease-in-out;
+}
+
+.slide-panel.slide-left {
+  transform: translateX(-100%);
+  opacity: 0.7;
+}
+
+.slide-panel.slide-right {
+  transform: translateX(100%);
+  opacity: 0.7;
+}
+
+.slide-panel.slide-center {
+  transform: translateX(0%);
+  opacity: 1;
+}
+
+/* Bubble floating animation */
+@keyframes floatBubble1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-20px, -25px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes floatBubble2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(25px, 20px) scale(0.97); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Apply to your bubble classes */
+.panel-blob-1 {
+  animation: floatBubble1 6s ease-in-out infinite;
+}
+
+.panel-blob-2 {
+  animation: floatBubble2 7s ease-in-out infinite;
+}
+
 
 /* ============================================================
    MOBILE VERSION (full sliding working)

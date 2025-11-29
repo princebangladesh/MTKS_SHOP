@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { IoMdSearch, IoMdClose } from "react-icons/io";
 import { FaCartShopping } from "react-icons/fa6";
 import { FaRegHeart, FaRegUser } from "react-icons/fa";
@@ -20,11 +20,29 @@ function Navbar() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation(); // ⭐ NEW  
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
-  const [ActiveSide, setActiveSide] = useState(true);
 
+  const [ActiveSide, setActiveSide] = useState(true);
   const handleBar = () => setActiveSide(!ActiveSide);
+
+  /* ⭐ AUTO-FOCUS SEARCH WHEN COMING FROM FOOTER */
+  useEffect(() => {
+  if (location.state?.focusSearch) {
+
+    // open + expand
+    setExpanded(true);
+    setMobileSearchOpen(true);
+
+    // focus input
+    setTimeout(() => inputRef.current?.focus(), 300);
+
+    // ❗ CLEAR state so refresh doesn't re-trigger
+    navigate(location.pathname, { replace: true, state: {} });
+  }
+}, [location.state]);
+
 
   /* 🔍 FETCH SEARCH RESULTS */
   useEffect(() => {
@@ -42,7 +60,7 @@ function Navbar() {
     return () => clearTimeout(delay);
   }, [query]);
 
-  /* CLOSE DROPDOWN ON OUTSIDE CLICK */
+  /* CLOSE DROPDOWN WHEN CLICK OUTSIDE */
   useEffect(() => {
     const handler = (e) => {
       if (
@@ -61,7 +79,7 @@ function Navbar() {
     return () => document.removeEventListener("click", handler);
   }, []);
 
-  /* ON SELECT */
+  /* SELECTED SEARCH RESULT */
   const handleSelect = (item) => {
     setQuery("");
     setSuggestions([]);
@@ -79,9 +97,9 @@ function Navbar() {
         <div className="flex justify-between items-center px-6 py-3">
 
           {/* LOGO */}
-          <a className="text-2xl font-bold text-brandGreen dark:text-white" href="/">
+          <Link className="text-2xl font-bold text-brandGreen dark:text-white" to="/">
             MTKS
-          </a>
+          </Link>
 
           {/* NAVIGATION CENTER */}
           <ul className="hidden lg:flex gap-10 font-semibold text-brandGreen dark:text-white">
@@ -91,16 +109,14 @@ function Navbar() {
             <li><Link to="/contact">Contact</Link></li>
           </ul>
 
+          {/* SIDEBAR */}
           <Sidebar ActiveSide={ActiveSide} handleBar={handleBar} />
 
           {/* RIGHT SIDE ICONS */}
           <div className="flex items-center gap-4 relative">
 
             {/* 🔍 MOBILE SEARCH BUTTON */}
-            <button
-              className="sm:hidden"
-              onClick={() => setMobileSearchOpen(true)}
-            >
+            <button className="sm:hidden" onClick={() => setMobileSearchOpen(true)}>
               <IoMdSearch className="text-3xl text-brandGreen dark:text-white" />
             </button>
 
@@ -117,7 +133,7 @@ function Navbar() {
                 placeholder="Search…"
                 className={`
                   transition-[width] duration-300 px-4 py-2 rounded-full border
-                  dark:bg-brandGreen dark:text-white mr-[2px]
+                  dark:bg-brandGreen dark:text-white
                   w-10
                   ${expanded ? "w-64" : "focus:w-64"}
                 `}
@@ -205,7 +221,6 @@ function Navbar() {
           {/* SEARCH INPUT */}
           <div className="mt-10 relative">
 
-            {/* Search icon inside left */}
             <IoMdSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl text-gray-500 dark:text-gray-200" />
 
             <input
@@ -223,7 +238,6 @@ function Navbar() {
               "
             />
 
-            {/* Clear X icon inside right */}
             {query && (
               <button
                 onClick={() => setQuery("")}

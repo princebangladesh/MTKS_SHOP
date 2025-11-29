@@ -1,157 +1,150 @@
-import React, { useState } from "react";
-import FloatingInput from "./FloatingInput";
-import PasswordField from "./PasswordField"; // advanced password field with strength meter
-import SocialButtons from "./SocialButtons";
-
-import api from "../../config/axios";
-
-function SignupForm({
+// ======================================================================
+// ============================= SIGNUP VIEW =============================
+// ======================================================================
+function SignupView({
+  signupData,
+  setSignupData,
+  scorePassword,
+  signupPasswordStrength,
+  setSignupPasswordStrength,
+  handleSignup,
+  validSignup,
   error,
-  setError,
-  triggerShake,
-  googleBtnRef,
-  handleFacebookResponse,
-  handleLinkedInLogin,
+  emailExists,
+  usernameExists,
+  checkingEmail,
+  checkingUsername,
+  setIsSignUp,
 }) {
-  const [signupData, setSignupData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirm: "",
-  });
-
-  const [strength, setStrength] = useState({ score: 0, label: "" });
-  const [validSignup, setValidSignup] = useState(false);
-
-  /* -------- Password Strength Scoring -------- */
-  const scorePassword = (password) => {
-    let score = 0;
-
-    if (password.length >= 6) score++;
-    if (password.length >= 10) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-
-    if (score === 0) return { score: 0, label: "" };
-    if (score <= 2) return { score, label: "Weak" };
-    if (score === 3) return { score, label: "Okay" };
-    if (score === 4) return { score, label: "Strong" };
-    return { score, label: "Very strong" };
-  };
-
-  /* -------- Live validation -------- */
-  const validateSignup = (updated) => {
-    const basicValid =
-      updated.name.trim().length >= 3 &&
-      updated.email.trim().length > 3 &&
-      updated.password.trim().length >= 6;
-
-    const passwordMatch = updated.password === updated.confirm;
-
-    setValidSignup(basicValid && passwordMatch);
-  };
-
-  /* -------- Input Change Handler -------- */
-  const onInputChange = (field, value) => {
-    const updated = { ...signupData, [field]: value };
-
-    if (field === "password") {
-      const st = scorePassword(value);
-      setStrength(st);
-    }
-    if (field === "confirm") {
-      // trigger match validation
-    }
-
-    setSignupData(updated);
-    validateSignup(updated);
-  };
-
-  /* -------- Signup Request -------- */
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    if (!validSignup) return;
-
-    setError("");
-
-    try {
-      await api.post("/api/auth/registration/", {
-        username: signupData.email,
-        email: signupData.email,
-        password1: signupData.password,
-        password2: signupData.password,
-        name: signupData.name,
-      });
-
-      window.location.reload(); // return to Sign In
-    } catch {
-      triggerShake();
-      setError("Signup failed. Try again.");
-    }
-  };
-
   return (
-    <form onSubmit={handleSignup} className="animate-fade">
-      <h2 className="text-3xl font-bold mb-6 dark:text-white">Create Account</h2>
+    <div className="form-box signup">
+      <h2 className="text-3xl font-bold text-emerald-600 mb-6">
+        Create Account
+      </h2>
 
-      <SocialButtons
-        googleBtnRef={googleBtnRef}
-        handleFacebook={handleFacebookResponse}
-        handleLinkedIn={handleLinkedInLogin}
-      />
+      {/* FIRST & LAST NAME */}
+      <div className="flex gap-4 mb-4">
+                <FloatingInput
+          label="First Name"
+          type="text"
+          value={signupData.first_name}
+          onChange={(e) => setSignupData({ ...signupData, first_name: e.target.value })}
+        />
 
+
+        <FloatingInput
+          label="Last Name"
+          type="text"
+          value={signupData.last_name}
+          onChange={(e) =>
+            setSignupData({ ...signupData, last_name: e.target.value })
+          }
+        />
+      </div>
+
+      {/* USERNAME */}
       <FloatingInput
-        label="Full Name"
+        label="Username"
         type="text"
-        value={signupData.name}
-        onChange={(e) => onInputChange("name", e.target.value)}
+        value={signupData.username}
+        onChange={(e) => { ... }}
+        status={
+          checkingUsername ? "checking"
+          : usernameExists === true ? "error"
+          : usernameExists === false ? "success"
+          : null
+        }
       />
 
+
+      {/* USERNAME FEEDBACK */}
+      {checkingUsername && (
+        <p className="text-gray-500 text-sm mb-2">⏳ Checking username…</p>
+      )}
+      {usernameExists === true && (
+        <p className="text-red-500 text-sm mb-2">❌ Username already taken</p>
+      )}
+      {usernameExists === false && signupData.username.length >= 3 && (
+        <p className="text-emerald-600 text-sm mb-2">✓ Username available</p>
+      )}
+
+      {/* EMAIL */}
       <FloatingInput
         label="Email Address"
         type="email"
         value={signupData.email}
-        onChange={(e) => onInputChange("email", e.target.value)}
+        onChange={(e) =>
+          setSignupData({ ...signupData, email: e.target.value })
+        }
       />
 
+      {/* EMAIL FEEDBACK */}
+      {checkingEmail && (
+        <p className="text-gray-500 text-sm mb-2">⏳ Checking email…</p>
+      )}
+      {emailExists === true && (
+        <p className="text-red-500 text-sm mb-2">❌ Email already exists</p>
+      )}
+      {emailExists === false && signupData.email.length >= 5 && (
+        <p className="text-emerald-600 text-sm mb-2">✓ Email available</p>
+      )}
+
+      {/* PASSWORD */}
       <PasswordField
         label="Password"
         value={signupData.password}
-        onChange={(e) => onInputChange("password", e.target.value)}
-        strength={strength}
+        onChange={(e) => {
+          const v = e.target.value;
+          setSignupData({ ...signupData, password: v });
+          setSignupPasswordStrength(scorePassword(v));
+        }}
+        strength={signupPasswordStrength}
       />
 
-      <FloatingInput
+      {/* CONFIRM PASSWORD */}
+      <PasswordConfirmField
         label="Confirm Password"
-        type="password"
-        value={signupData.confirm}
-        onChange={(e) => onInputChange("confirm", e.target.value)}
+        password={signupData.password}
+        value={signupData.confirmPassword}
+        onChange={(e) =>
+          setSignupData({
+            ...signupData,
+            confirmPassword: e.target.value,
+          })
+        }
       />
 
-      {signupData.confirm.length > 0 &&
-        signupData.confirm !== signupData.password && (
-          <p className="text-red-500 text-xs mt-1 animate-fade">
-            Passwords do not match
-          </p>
-        )}
-
-      {error && (
-        <p className="text-red-500 text-sm mb-3 animate-fade">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-sm">{error}</p>}
 
       <button
-        disabled={!validSignup}
-        className={`w-full py-3 rounded-lg font-semibold mt-1 transition ${
-          validSignup
-            ? "bg-green-600 hover:bg-green-700 text-white shadow-md"
-            : "bg-gray-300 text-gray-600 cursor-not-allowed"
+        disabled={
+          !validSignup ||
+          emailExists === true ||
+          usernameExists === true ||
+          checkingEmail ||
+          checkingUsername
+        }
+        className={`w-full py-3 rounded-lg font-semibold transition ${
+          !validSignup ||
+          emailExists === true ||
+          usernameExists === true ||
+          checkingEmail ||
+          checkingUsername
+            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+            : "bg-emerald-600 text-white hover:bg-emerald-700"
         }`}
       >
         SIGN UP
       </button>
-    </form>
+
+      <div className="mobile-auth-link text-center mt-4">
+        <button
+          onClick={() => setIsSignUp(false)}
+          className="underline text-emerald-600"
+        >
+          Already have an account? Sign in
+        </button>
+      </div>
+    </div>
   );
 }
-
-export default SignupForm;

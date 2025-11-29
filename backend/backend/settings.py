@@ -33,7 +33,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
      
     "http://localhost:3000",
-    "https://mtks-shop-rcau.vercel.app/",
+    "https://mtks-shop-rcau.vercel.app",
 
 ]
 
@@ -248,4 +248,4 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.getenv("FRONTEND_URL")

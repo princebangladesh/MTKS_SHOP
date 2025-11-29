@@ -3,45 +3,37 @@ import { FaCartPlus } from "react-icons/fa";
 import { CiHeart, CiSearch } from "react-icons/ci";
 import { BiRefresh } from "react-icons/bi";
 import { useCart } from "./cartContext";
+import { useWishlist } from "./wishlistcontext";
 import Toast from "./toast";
 import { Link, useNavigate } from "react-router-dom";
-import { useWishlist } from "./wishlistcontext";
 
 function ProductLand({ product }) {
-  const { addToWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
   const [toast, setToast] = React.useState(null);
 
   const showToast = (message, title, type) => {
     setToast({ message, title, type });
-    setTimeout(() => setToast(null), 2500);
+    setTimeout(() => setToast(null), 2000);
   };
 
   const variant = product?.variants?.length ? product.variants[0] : null;
 
   const categoryName =
-    product?.category_name ||
-    product?.category?.name ||
-    "Category";
+    product?.category_name || product?.category?.name || "Category";
 
-  const placeholder = "https://via.placeholder.com/300x200?text=No+Image";
+  const productName = product?.name || "Unnamed Product";
 
   const displayImage =
     variant?.image ||
     product?.image1 ||
     product?.image ||
-    placeholder;
+    "https://via.placeholder.com/300x200?text=No+Image";
 
-  const displayPrice = Number(
-    variant?.price ?? product?.current_price ?? 0
-  );
-
-  const displayOldPrice = Number(
-    variant?.previous_price ?? product?.previous_price ?? 0
-  );
-
-  const productName = product?.name || "Unnamed Product";
+  const price = Number(variant?.price ?? product?.current_price ?? 0);
+  const oldPrice = Number(variant?.previous_price ?? product?.previous_price ?? 0);
+  const rating = Number(product?.rating ?? 0);
 
   const handleAdd = () => {
     const payload = variant
@@ -62,146 +54,202 @@ function ProductLand({ product }) {
   };
 
   return (
-    <div className="
-      product-box bg-white dark:bg-black p-3 
-      hover:shadow-xl rounded-xl overflow-hidden 
-      group flex flex-col justify-between
-    ">
-
-      {/* IMAGE SECTION */}
-      <div className="relative cursor-pointer flex justify-center items-center overflow-hidden">
-
-        {/* DESKTOP ICONS */}
-        <div className="
-          absolute hidden md:flex flex-col 
-          top-[15%] right-[-60%] opacity-0 
-          md:group-hover:right-3 md:group-hover:opacity-100 
-          transition-all duration-300 z-10
-        ">
-          <button
-            className="p-3 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700"
-            onClick={handleWishlist}
-          >
-            <CiHeart size={22} />
-          </button>
-
-          <button className="p-3 mb-2 bg-brandGreen text-white rounded shadow">
-            <BiRefresh size={22} />
-          </button>
-
-          <button
-            className="p-3 mb-2 bg-brandGreen text-white rounded shadow hover:bg-green-700"
-            onClick={() => navigate(`/product/${product.id}`)}
-          >
-            <CiSearch size={22} />
-          </button>
-        </div>
-
+    <div
+      className="
+        bg-white dark:bg-[#0d0d0d]
+        rounded-2xl 
+        border border-gray-200 dark:border-gray-700
+        shadow-sm hover:shadow-xl 
+        transition-all duration-300
+        p-3 flex flex-col group
+      "
+    >
+      {/* ================= IMAGE ================= */}
+      <div
+        className="relative rounded-xl overflow-hidden cursor-pointer"
+        onClick={() => navigate(`/product/${product.id}`)}
+      >
         <img
           src={displayImage}
           alt={productName}
           className="
-            w-full h-[160px] object-cover 
-            transition-all duration-500  
-            md:group-hover:scale-110 rounded-lg
+            w-full h-48 object-contain rounded-xl
+            transition-transform duration-500
+            group-hover:scale-105
           "
-          onClick={() => navigate(`/product/${product.id}`)}
         />
+
+        {/* RIGHT HOVER ICONS (DESKTOP) */}
+        <div
+          className="
+            hidden md:flex flex-col gap-2
+            absolute top-4 right-3
+            opacity-0 translate-x-4
+            group-hover:translate-x-0 group-hover:opacity-100
+            transition-all duration-300 z-20
+          "
+        >
+          <button
+            className="
+              bg-white dark:bg-[#1f1f1f]
+              text-gray-800 dark:text-white
+              p-3 rounded-full shadow border border-gray-200 dark:border-gray-600
+              hover:bg-brandGreen hover:text-white
+            "
+            onClick={(e) => {
+              e.stopPropagation();
+              handleWishlist();
+            }}
+          >
+            <CiHeart size={22} />
+          </button>
+
+          <button
+            className="
+              bg-white dark:bg-[#1f1f1f]
+              text-gray-800 dark:text-white
+              p-3 rounded-full shadow border border-gray-200 dark:border-gray-600
+            "
+          >
+            <BiRefresh size={22} />
+          </button>
+
+          <button
+            className="
+              bg-white dark:bg-[#1f1f1f]
+              text-gray-800 dark:text-white
+              p-3 rounded-full shadow border border-gray-200 dark:border-gray-600
+              hover:bg-brandGreen hover:text-white
+            "
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/product/${product.id}`);
+            }}
+          >
+            <CiSearch size={22} />
+          </button>
+        </div>
       </div>
 
-      {/* MOBILE ACTION ICONS */}
-      <div className="flex md:hidden justify-center gap-3 mt-3">
+      {/* ================= MOBILE ICON ROW ================= */}
+      <div className="md:hidden flex justify-center gap-3 mt-3">
         <button
-          className="p-2 bg-brandGreen text-white rounded shadow"
           onClick={handleWishlist}
+          className="bg-brandGreen text-white p-2 rounded-full shadow"
         >
           <CiHeart size={20} />
         </button>
 
-        <button className="p-2 bg-brandGreen text-white rounded shadow">
+        <button className="bg-brandGreen text-white p-2 rounded-full shadow">
           <BiRefresh size={20} />
         </button>
 
         <button
-          className="p-2 bg-brandGreen text-white rounded shadow"
           onClick={() => navigate(`/product/${product.id}`)}
+          className="bg-brandGreen text-white p-2 rounded-full shadow"
         >
           <CiSearch size={20} />
         </button>
 
         <button
-          className="p-2 bg-brandGreen text-white rounded shadow"
           onClick={handleAdd}
+          className="bg-brandGreen text-white p-2 rounded-full shadow"
         >
           <FaCartPlus size={20} />
         </button>
       </div>
 
-      {/* TEXT SECTION */}
-      <div className="text py-3 pr-2">
-
+      {/* ================= TEXT SECTION ================= */}
+      <div className="mt-3 flex flex-col flex-1">
         <div className="flex justify-between items-center">
           <Link to={`/category/${product.category_slug}`}>
-            <span className="text-sm text-gray-500 dark:text-gray-300">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {categoryName}
-            </span>
+            </p>
           </Link>
 
-          <p className="text-yellow-500 text-sm">
+          <div className="text-yellow-400 text-sm">
             {[...Array(5)].map((_, i) => (
-              <span key={i}>
-                {i < Math.floor(product.rating) ? "★" : "☆"}
-              </span>
+              <span key={i}>{i < Math.floor(rating) ? "★" : "☆"}</span>
             ))}
-          </p>
+          </div>
         </div>
 
-        <h3
-          className="
-            text-[15px] font-semibold 
-            dark:text-white leading-tight mt-2 
-            cursor-pointer
-          "
-          onClick={() => navigate(`/product/${product.id}`)}
-        >
-          {productName}
-        </h3>
+        {/* TITLE WITH FADE + EXPAND */}
+        <div className="mt-1 relative max-h-[44px] overflow-hidden group-hover:max-h-fit transition-all duration-300">
+          <div
+            className="
+              absolute bottom-0 left-0 w-full h-6
+              bg-gradient-to-t 
+              from-white dark:from-[#0d0d0d]
+              to-transparent
+              pointer-events-none
+              opacity-100 group-hover:opacity-0
+              transition-opacity duration-300
+            "
+          />
 
-        {/* PRICE */}
-        <div className="pricing mt-2 flex justify-between items-center relative">
+          <h3
+            className="
+              font-semibold text-[14px] sm:text-[15px]
+              leading-tight
+              text-gray-900 dark:text-gray-100
+              cursor-pointer
+              line-clamp-2 group-hover:line-clamp-none
+              break-words
+            "
+            onClick={() => navigate(`/product/${product.id}`)}
+          >
+            {productName}
+          </h3>
+        </div>
+
+        {/* ================= PRICE + CART BTN ================= */}
+        <div className="flex justify-between items-center mt-auto pt-3 relative">
           <div className="flex gap-2 items-center">
-            <span className="text-brandGreen dark:text-green-300 font-semibold">
-              ${displayPrice.toFixed(2)}
+            <span className="text-brandGreen dark:text-green-300 font-bold">
+              ${price.toFixed(2)}
             </span>
 
-            {displayOldPrice > 0 && (
-              <span className="line-through text-gray-500 text-sm">
-                ${displayOldPrice.toFixed(2)}
+            {oldPrice > 0 && (
+              <span className="line-through text-gray-400 dark:text-gray-500 text-sm">
+                ${oldPrice.toFixed(2)}
               </span>
             )}
           </div>
 
+          {/* Desktop Cart Button (slides in cleanly) */}
           <button
             onClick={handleAdd}
             className="
-              hidden md:block absolute right-[-60%] 
-              md:group-hover:right-1 transition-all duration-300 
-              text-black dark:text-white
+              hidden md:flex items-center justify-center
+              w-10 h-10 rounded-full
+              bg-white dark:bg-[#1e1e1e]
+              border border-gray-200 dark:border-gray-600
+              shadow text-brandGreen dark:text-white
+
+              absolute right-2 top-1/2 -translate-y-1/2
+              opacity-0 translate-x-4 pointer-events-none
+              group-hover:opacity-100 group-hover:translate-x-0 
+              group-hover:pointer-events-auto
+
+              transition-all duration-300
             "
           >
-            <FaCartPlus size="1.3rem" />
+            <FaCartPlus size={18} />
           </button>
         </div>
-
-        {toast && (
-          <Toast
-            message={toast.message}
-            title={toast.title}
-            type={toast.type}
-            onClose={() => setToast(null)}
-          />
-        )}
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <Toast 
+          message={toast.message}
+          title={toast.title}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

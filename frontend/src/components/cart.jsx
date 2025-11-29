@@ -1,5 +1,6 @@
 import React from "react";
 import { useCart } from "./shared/cartContext";
+import { useAuth } from "./shared/authContext"; // << add this
 import { FaTrash } from "react-icons/fa";
 import CartSkeleton from "./skeleton/CartSkeleton";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +18,7 @@ const Cart = () => {
     total,
   } = useCart();
 
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   if (loading) return <CartSkeleton />;
@@ -40,6 +42,16 @@ const Cart = () => {
       index
     );
   };
+
+  // ⬇⬇⬇ NEW CHECKOUT HANDLER ⬇⬇⬇
+  const handleCheckout = () => {
+    if (isAuthenticated) {
+      navigate("/checkout");
+    } else {
+      navigate("/login?redirect=/checkout");
+    }
+  };
+  // ⬆⬆⬆ NEW CHECKOUT HANDLER ⬆⬆⬆
 
   return (
     <div className="min-h-screen px-4 py-6 bg-gray-100 dark:bg-black transition">
@@ -68,7 +80,7 @@ const Cart = () => {
           </p>
         ) : (
           <>
-            {/* DESKTOP TABLE (hidden on mobile) */}
+            {/* DESKTOP TABLE */}
             <div className="hidden md:grid grid-cols-6 border-b pb-2 font-semibold text-gray-600 dark:text-gray-300 dark:border-gray-700">
               <span className="col-span-3">Item</span>
               <span>Price</span>
@@ -97,13 +109,9 @@ const Cart = () => {
               return (
                 <div
                   key={itemId}
-                  className="
-                    border-b dark:border-gray-700 py-4 transition
-                    md:grid md:grid-cols-6 md:gap-4
-                  "
+                  className="border-b dark:border-gray-700 py-4 transition md:grid md:grid-cols-6 md:gap-4"
                 >
-
-                  {/* DESKTOP LAYOUT */}
+                  {/* DESKTOP ITEM */}
                   <div className="hidden md:flex md:col-span-3 items-center gap-4">
                     <img
                       src={image}
@@ -123,7 +131,7 @@ const Cart = () => {
                     </div>
                   </div>
 
-                  {/* MOBILE CARD (FULL WIDTH BLOCK) */}
+                  {/* MOBILE CARD */}
                   <div className="md:hidden bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-4">
                     <img
                       src={image}
@@ -182,7 +190,7 @@ const Cart = () => {
                     ${price.toFixed(2)}
                   </div>
 
-                  {/* DESKTOP QUANTITY */}
+                  {/* DESKTOP QTY */}
                   <div className="hidden md:flex items-center gap-2">
                     <button
                       onClick={() => decreaseQty(itemId)}
@@ -211,7 +219,6 @@ const Cart = () => {
                       <FaTrash />
                     </button>
                   </div>
-
                 </div>
               );
             })}
@@ -231,8 +238,9 @@ const Cart = () => {
                 Grand Total: ${total.toFixed(2)}
               </p>
 
+              {/* NEW CHECKOUT BUTTON */}
               <button
-                onClick={() => navigate("/checkout")}
+                onClick={handleCheckout}
                 className="mt-4 px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-500 transition"
               >
                 Proceed to Checkout
