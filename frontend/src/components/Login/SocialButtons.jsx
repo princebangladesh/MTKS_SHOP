@@ -17,7 +17,7 @@ export default function SocialButtons({
       <AnimatedSocialButton
         color="#DB4437"
         onClick={() => {
-          setError("");
+          setTimeout(() => setError(""), 100);
           const btn = googleBtnRef.current?.querySelector("div[role='button']");
           if (btn) btn.click();
         }}
