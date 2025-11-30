@@ -5,12 +5,12 @@ from rest_framework.viewsets import ReadOnlyModelViewSet,ModelViewSet
 
 from .serializers import CategorySerializer, SubCategorySerializer,SubPreCategorySerializer,SubPostCategorySerializer       
 
-class CategoryViewSet(ModelViewSet):  # or ModelViewSet if you want full CRUD
+class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'  
 
-class CategorySliderViewSet(ModelViewSet):  # or ModelViewSet if you want full CRUD
+class CategorySliderViewSet(ModelViewSet):  
     queryset = Category.objects.all().filter(is_popular=True)
     serializer_class = CategorySerializer
     

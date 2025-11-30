@@ -23,7 +23,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', None)
 
-        # Update user fields
         if user_data:
             user = instance.user
             allowed_fields = ['first_name', 'last_name', 'email']
@@ -32,7 +31,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     setattr(user, field, user_data[field])
             user.save()
 
-        # Update profile fields
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -71,9 +70,8 @@ class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         username_or_email = attrs.get("username")
 
-        # Check if input is an email
         if User.objects.filter(email=username_or_email).exists():
             user = User.objects.get(email=username_or_email)
-            attrs["username"] = user.username  # convert email → username
+            attrs["username"] = user.username
 
         return super().validate(attrs)

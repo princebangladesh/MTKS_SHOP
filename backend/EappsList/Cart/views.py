@@ -29,19 +29,17 @@ class CartViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def _get_cart(self, user):
-        """Get or create a cart for the logged-in user."""
         cart, _ = Cart.objects.get_or_create(user=user)
         return cart
 
     def list(self, request):
-        """Return the user's cart with all items."""
         cart = self._get_cart(request.user)
         serializer = CartSerializer(cart, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'])
     def add(self, request):
-        """Add a product or variant to the user's cart."""
+        
         cart = self._get_cart(request.user)
         variant_id = request.data.get("variant_id")
         product_id = request.data.get("product_id")
@@ -77,7 +75,6 @@ class CartViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def remove(self, request):
-        """Remove an item from the user's cart."""
         cart = self._get_cart(request.user)
         variant_id = request.data.get("variant_id")
         product_id = request.data.get("product_id")
@@ -168,7 +165,6 @@ class WishlistView(viewsets.ModelViewSet):
         return Response({'detail': 'Product removed from wishlist'}, status=200)
 
 
-# Optional: separate view for guest cart sync (add this to urls.py manually)
 from rest_framework.views import APIView
 
 class GuestCartSyncView(APIView):

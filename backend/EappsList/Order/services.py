@@ -6,7 +6,7 @@ from django.db.models import F
 from django.core.exceptions import ValidationError
 
 from .models import Order, OrderItem
-from ..Product.models import ProductVariant  # assumes fields: price (Decimal), stock (int)
+from ..Product.models import ProductVariant  
 
 
 class InsufficientStock(ValidationError):

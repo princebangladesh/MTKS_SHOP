@@ -6,9 +6,7 @@ from django.contrib.auth.models import User
 
 from ..Category.models import Category, SubCategory, SubPreCategory, SubPostCategory
 
-# -------------------------------------
-# SKU Model
-# -------------------------------------
+
 class SKU(models.Model):
     code = models.CharField(max_length=6, unique=True, editable=False)
 
@@ -33,9 +31,6 @@ class SKU(models.Model):
         return self.code
 
 
-# -------------------------------------
-# Colour Model
-# -------------------------------------
 class Colour(models.Model):
     colour_name = models.CharField(max_length=10)
     colour_code = models.CharField(max_length=7, blank=True, null=True)
@@ -48,9 +43,6 @@ class Colour(models.Model):
         verbose_name_plural = "Colors"
 
 
-# -------------------------------------
-# Brand Model
-# -------------------------------------
 class Brand(models.Model):
     name = models.CharField(unique=True, max_length=100)
     slug = models.SlugField(unique=True, null=True, blank=True)
@@ -73,10 +65,7 @@ class Brand(models.Model):
         return self.name
 
 
-# -------------------------------------
-# Regular Size Model
-# -------------------------------------
-class RegularSize(models.Model):  # renamed from Regular_size
+class RegularSize(models.Model):  
     id = models.AutoField(primary_key=True)
     size = models.CharField(max_length=20)
 
@@ -88,9 +77,6 @@ class RegularSize(models.Model):  # renamed from Regular_size
         verbose_name_plural = "Regular Sizes"
 
 
-# -------------------------------------
-# Product Model
-# -------------------------------------
 class Product(models.Model):
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE, blank=True, null=True)
     sub_category = models.ForeignKey(SubCategory, related_name='products', on_delete=models.CASCADE, blank=True, null=True)
@@ -143,7 +129,7 @@ class Product(models.Model):
     def total_stock(self):
         if not self.variants.exists():
             return self.quantity
-    # Otherwise, return the sum of all variant quantities and the product's own quantity.
+
         return sum((variant.quantity or 0) for variant in self.variants.all()) + (self.quantity or 0)
 
     class Meta:

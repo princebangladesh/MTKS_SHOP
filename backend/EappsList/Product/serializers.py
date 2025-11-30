@@ -87,29 +87,28 @@ class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     variants = ProductVariantSerializer(many=True, read_only=True)
     brand = BrandSerializer()
-    # Fallback image used by wishlist
+
     image = serializers.SerializerMethodField()
 
-    # Convert ALL image fields to absolute URLs
     image1 = serializers.SerializerMethodField()
     image2 = serializers.SerializerMethodField()
     image3 = serializers.SerializerMethodField()
     image4 = serializers.SerializerMethodField()
 
-    # Computed prices for wishlist & product cards
+
     display_price = serializers.SerializerMethodField()
     display_old_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = "__all__"  # Ensures all model fields + custom fields are included
+        fields = "__all__" 
         extra_fields = [
             "image",
             "image1", "image2", "image3", "image4",
             "display_price", "display_old_price",
         ]
 
-    # --- Helper: Convert relative → absolute URL ---
+
     def _abs_url(self, image_field):
         request = self.context.get("request")
         try:

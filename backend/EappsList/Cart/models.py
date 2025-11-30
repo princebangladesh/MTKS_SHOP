@@ -30,9 +30,6 @@ class Cart(models.Model):
         return f"{self.user.username}'s Cart"
 
 
-# -------------------------------------
-# CartItem Model (uses ProductVariant now)
-# -------------------------------------
 class CartItem(models.Model):
     cart = models.ForeignKey("Cart", on_delete=models.CASCADE, related_name="items")
     variant = models.ForeignKey(ProductVariant, null=True, blank=True, on_delete=models.SET_NULL)
@@ -60,9 +57,7 @@ class CartItem(models.Model):
 
 
 
-# -------------------------------------
-# Wishlist Model (still product-based)
-# -------------------------------------
+
 class Wishlist(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, blank=True)

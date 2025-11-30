@@ -60,14 +60,11 @@ class GoogleLoginView(APIView):
         try:
             idinfo = id_token.verify_oauth2_token(token, requests.Request())
 
-            # Get user info
             email = idinfo.get('email')
             name = idinfo.get('name')
 
-            # Get or create user
             user, created = User.objects.get_or_create(email=email, defaults={'username': email, 'first_name': name})
 
-            # Issue JWT token
             refresh = RefreshToken.for_user(user)
 
             return Response({
@@ -116,7 +113,7 @@ def change_password(request):
         user.save()
         update_session_auth_hash(request, user)
 
-        # Send success email template
+     
         html_content = render_to_string("emails/password_reset_success.html", {
             "name": user.first_name or user.username,
             "site_name": "Your Website",
@@ -147,7 +144,6 @@ class RegisterUser(APIView):
 
         data = serializer.validated_data
 
-        # Create inactive user
         user = User.objects.create(
             username=data["username"],
             email=data["email"],
@@ -158,19 +154,14 @@ class RegisterUser(APIView):
         user.set_password(data["password"])
         user.save()
 
-        # Create profile
         UserProfile.objects.create(user=user)
 
-        # → Encode UID (no padding)
         uid = encode_uid(user.pk)
 
-        # → Create token
         token = default_token_generator.make_token(user)
 
-        # → Build verification URL
         verify_url = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
 
-        # Render email template
         html_message = render_to_string(
             "emails/verify_email.html",
             {"first_name": user.first_name, "verify_url": verify_url},
@@ -198,17 +189,14 @@ class VerifyEmailView(APIView):
             return Response({"detail": "Invalid verification link"}, status=400)
 
         try:
-            # → Restore padding + decode UID safely
             user_id = decode_uid(uidb64)
             user = User.objects.get(pk=user_id)
         except Exception:
             return Response({"detail": "Invalid link"}, status=400)
 
-        # → Validate token
         if not default_token_generator.check_token(user, token):
             return Response({"detail": "Invalid or expired token"}, status=400)
 
-        # → Activate user
         user.is_active = True
         user.save()
 
@@ -247,7 +235,6 @@ class PasswordResetRequestView(APIView):
         if not email:
             return Response({"detail": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Only fetch, DO NOT create
         user = User.objects.filter(email=email, is_active=True).first()
 
 
@@ -257,7 +244,6 @@ class PasswordResetRequestView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        # ✅ For existing user: generate token + send email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         frontend_url = settings.FRONTEND_URL

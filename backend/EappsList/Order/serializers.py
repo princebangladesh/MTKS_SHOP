@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Order, OrderItem
 from ..Product.models import Product, ProductVariant, Colour
 from decimal import Decimal
-
+from django.core.mail import send_mail
 
 # ---------------------------------------------------------
 # Order Item Input
@@ -95,7 +95,7 @@ class OrderCreateSerializer(serializers.Serializer):
         user = self.context["request"].user
         items = validated_data.pop("items")
 
-        # Recalculate total on backend
+        # --- BACKEND PRICE VALIDATION ---
         calculated_total = sum(
             Decimal(item["price"]) * item["quantity"] for item in items
         )
@@ -105,11 +105,11 @@ class OrderCreateSerializer(serializers.Serializer):
                 {"total_price": "Total price mismatch — possible tampering detected."}
             )
 
-        # Create Order
+        # --- CREATE ORDER ---
         order = Order.objects.create(user=user, **validated_data)
         default_color = self.get_default_color()
 
-        # Process Order Items
+        # --- PROCESS ORDER ITEMS ---
         for item in items:
 
             # CASE 1 — Product With Variant
@@ -124,7 +124,7 @@ class OrderCreateSerializer(serializers.Serializer):
                         {"variant_id": "Variant does not belong to the supplied product_id"}
                     )
 
-            # CASE 2 — Simple Product (no variant)
+            # CASE 2 — Simple Product
             else:
                 try:
                     product = Product.objects.get(id=item["product_id"])
@@ -148,12 +148,29 @@ class OrderCreateSerializer(serializers.Serializer):
                     "quantity": f"Only {variant.quantity} items available for variant {variant.id}"
                 })
 
-            # Create the Order Item
+            # CREATE ORDER ITEM
             OrderItem.objects.create(
                 order=order,
                 product_variant=variant,
                 quantity=item["quantity"],
                 price=item["price"],
             )
+
+        # ===============================
+        # 📧 SEND CONFIRMATION EMAIL
+        # ===============================
+        send_mail(
+            subject="Order Confirmation",
+            message=(
+                f"Hi {user.username},\n\n"
+                f"Your order #{order.id} has been placed successfully.\n"
+                f"Total: {order.total_price}\n\n"
+                f"Shipping to: {order.shipping_address}\n\n"
+                f"Thank you for your purchase!"
+            ),
+            from_email="no-reply@yourstore.com",
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
 
         return order

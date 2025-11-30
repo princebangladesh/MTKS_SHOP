@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
-from .models import Carousel
+from .models import Carousel,OfferBanner
 from ..Category.models import Category
+from .models import Dblocks
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,10 +18,27 @@ class CarouselSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_category(self, obj):
-        if obj.categorys:  # <-- correct field
+        if obj.categorys:  
             return {
                 "id": obj.categorys.id,
                 "name": obj.categorys.name,
                 "slug": obj.categorys.slug,
             }
         return None
+    
+
+
+
+
+class DblocksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dblocks
+        fields = '__all__'
+
+
+
+
+class OfferBannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfferBanner
+        fields = '__all__'

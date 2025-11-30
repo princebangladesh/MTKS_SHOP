@@ -24,8 +24,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ColorSerializer(serializers.ModelSerializer):
     class Meta:
-        model =   Colour  # or your color model
-        fields = ['colour_name', 'colour_code']  # inc
+        model =   Colour  
+        fields = ['colour_name', 'colour_code']  
+
 # ---------------------------
 # ProductVariant Serializer
 # ---------------------------
@@ -40,7 +41,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         fields = ['id','product', 'size', 'color', 'price', 'image']
 
     def get_price(self, obj):
-        # Return current_price from variant or fallback to product current_price
+
         if obj.current_price:
             return float(obj.current_price)
         elif obj.product and obj.product.current_price:
@@ -61,9 +62,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         return image_url
 
 
-# ---------------------------
-# Utility: Get/Create Default Variant
-# ---------------------------
+
 def get_or_create_default_variant(product):
     existing_variant = ProductVariant.objects.filter(
         product=product, color__isnull=True, size__isnull=True
@@ -84,9 +83,7 @@ def get_or_create_default_variant(product):
     return default_variant
 
 
-# ---------------------------
-# CartItem Read Serializer
-# ---------------------------
+
 class CartItemSerializer(serializers.ModelSerializer):
     variant = ProductVariantSerializer(read_only=True)
     product = ProductSerializer(read_only=True)
@@ -136,9 +133,6 @@ class CartItemSerializer(serializers.ModelSerializer):
         return image_url
 
 
-# ---------------------------
-# CartItem Create Serializer (Write)
-# ---------------------------
 class CartItemCreateSerializer(serializers.Serializer):
     product_id = serializers.IntegerField(required=False)
     variant_id = serializers.IntegerField(required=False)
@@ -176,10 +170,6 @@ class CartItemCreateSerializer(serializers.Serializer):
             cart_item.save()
         return cart_item
 
-
-# ---------------------------
-# Cart Serializer
-# ---------------------------
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
 

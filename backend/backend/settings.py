@@ -11,7 +11,6 @@ from datetime import timedelta
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env
 load_dotenv(BASE_DIR / ".env")
 
 # SECURITY
@@ -19,11 +18,11 @@ load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-# Allow Docker builds to run Django commands without failing
+
 if not SECRET_KEY:
     SECRET_KEY = "dummy-secret-key-for-build"
 DEBUG = True
-# DEBUG = os.getenv("DEBUG", "False") == "True"
+
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -107,9 +106,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-# ------------------------------------------------------------
-# Database (PythonAnywhere free tier)
-# ------------------------------------------------------------
+
 
 DATABASES = {
     "default": {
@@ -118,9 +115,6 @@ DATABASES = {
     }
 }
 
-# ------------------------------------------------------------
-# REST Framework & JWT
-# ------------------------------------------------------------
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

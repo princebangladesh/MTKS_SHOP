@@ -6,7 +6,6 @@ import string, random
 
 
 def generate_order_id():
-    """Generate a 6-character code: 2 letters + 4 digits."""
     letters = ''.join(random.choices(string.ascii_uppercase, k=2))
     numbers = ''.join(random.choices(string.digits, k=4))
     return f"{letters}{numbers}"

@@ -1,7 +1,7 @@
 # utils.py
 
 from .models import ProductVariant
-from .models import Product# Adjust the import if utils is not in the same app
+from .models import Product
 
 def get_or_create_default_variant(product):
     """
@@ -9,7 +9,7 @@ def get_or_create_default_variant(product):
     or creates one if it doesn't exist.
     """
 
-    # Try to find an existing variant with no size and no color
+
     variant = ProductVariant.objects.filter(
         product=product,
         size=None,
@@ -26,7 +26,7 @@ def get_or_create_default_variant(product):
         color=None,
         current_price=product.current_price,
         previous_price=product.previous_price,
-        quantity=10  # Default stock, adjust as needed
+        quantity=10  
     )
 
     return variant

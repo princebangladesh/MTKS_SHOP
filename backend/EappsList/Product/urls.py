@@ -14,10 +14,8 @@ from .views import (
     SearchViewSet
 )
 
-# Initialize the router
 router = DefaultRouter()
 
-# Registering ViewSets with appropriate URLs
 router.register(r'productlist', ProductViewSet, basename='productlist')
 router.register(r'fr_product', FeaturedViewSet, basename='Featured')
 router.register(r'tr_product', TrendingViewSet, basename='Trending')
@@ -30,5 +28,5 @@ router.register('search', SearchViewSet, basename='search')
 
 # Include router URLs in the urlpatterns
 urlpatterns = [
-    path('', include(router.urls)),  # Automatically include all registered routes
+    path('', include(router.urls)), 
 ]

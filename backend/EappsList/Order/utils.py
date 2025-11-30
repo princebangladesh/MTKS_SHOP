@@ -14,7 +14,7 @@ def create_order_from_cart(user, shipping_address, billing_address):
         user=user,
         shipping_address=shipping_address,
         billing_address=billing_address,
-        total_price=0  # temporary
+        total_price=0  
     )
 
     for item in cart.items.select_related('variant'):
@@ -29,14 +29,13 @@ def create_order_from_cart(user, shipping_address, billing_address):
             price=variant.current_price,
         )
 
-        # Optionally decrease stock
         variant.quantity = max(0, variant.quantity - item.quantity)
         variant.save()
 
     order.total_price = total_price
     order.save()
 
-    # Optionally clear the cart
+ 
     cart.items.all().delete()
 
     return order

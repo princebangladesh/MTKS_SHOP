@@ -46,3 +46,46 @@ class Promo_offer(models.Model):
 
       def __str__(self):
             return self.title
+      
+
+
+class Dblocks(models.Model):
+      promotion=models.CharField(max_length=100,null=True,blank=True)
+      title=models.CharField(max_length=50,null=True,blank=True)
+      detail=models.CharField(max_length=200,null=True,blank=True)
+      image=models.ImageField(upload_to='Dblocks', height_field=None, width_field=None, max_length=None)
+      link=models.URLField(max_length=200)
+      published=models.BooleanField(default=True)
+      
+      class Meta:
+          verbose_name = _("Dblock")
+          verbose_name_plural = _("Dblocks")
+
+      def __str__(self):
+            return self.title
+
+class OfferBanner(models.Model):
+    promotion = models.CharField(max_length=50)
+    title = models.CharField(max_length=100)
+    subtitle = models.TextField(blank=True, null=True)
+    
+    image = models.ImageField(upload_to='banners/')  
+
+    limited_time_text = models.CharField(
+        max_length=100, 
+        default="Limited Time Offer"
+    )
+
+    end_date = models.DateTimeField()               
+    button_text = models.CharField(
+        max_length=50, 
+        default="Shop Now"
+    )
+    button_link = models.URLField(blank=True, null=True)
+
+    published = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.promotion}"
