@@ -1,32 +1,25 @@
 import React from "react";
 import FacebookLogin from "react-facebook-login/dist/facebook-login-render-props";
 import { FaFacebookF, FaLinkedin } from "react-icons/fa";
-import { useGoogleLogin } from "@react-oauth/google";
 import AnimatedSocialButton from "./AnimatedSocialButton";
 
 export default function SocialButtons({
+  googleBtnRef,
   setError,
   handleFacebook,
   handleLinkedIn,
   handleGoogleSuccess,
 }) {
-
-
-  const googleLogin = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
-    onError: () => setError("Google login failed"),
-    flow: "implicit",
-  });
-
   return (
     <div className="flex gap-6 mb-6 justify-center md:justify-start items-center">
-
+      
       {/* GOOGLE */}
       <AnimatedSocialButton
         color="#DB4437"
         onClick={() => {
           setError("");
-          googleLogin(); 
+          const btn = googleBtnRef.current?.querySelector("div[role='button']");
+          if (btn) btn.click();
         }}
         icon={
           <img
@@ -47,7 +40,7 @@ export default function SocialButtons({
             color="#1877F2"
             onClick={() => {
               setError("");
-              props.onClick(); 
+              props.onClick();
             }}
             icon={<FaFacebookF className="text-lg" />}
           />
@@ -60,7 +53,6 @@ export default function SocialButtons({
         onClick={handleLinkedIn}
         icon={<FaLinkedin className="text-lg" />}
       />
-
     </div>
   );
 }

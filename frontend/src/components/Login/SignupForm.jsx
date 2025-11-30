@@ -47,7 +47,9 @@ function SignupView({
         label="Username"
         type="text"
         value={signupData.username}
-        onChange={(e) => { ... }}
+        onChange={(e) =>
+          setSignupData({ ...signupData, username: e.target.value })
+        }
         status={
           checkingUsername ? "checking"
           : usernameExists === true ? "error"
