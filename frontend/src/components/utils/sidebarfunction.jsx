@@ -1,6 +1,4 @@
-// ======================================
-// sidebarfunction.js (FULL WORKING FILE)
-// ======================================
+// src/components/utils/sidebarfunction.jsx
 
 import React from "react";
 
@@ -59,7 +57,8 @@ export function goToNextPage(currentPage, totalPages, setCurrentPage) {
 }
 
 // ===========================
-// Auto Price Range Extractor  (FIXED)
+// Auto Price Range Extractor
+// (Final Warning-Free Version)
 // ===========================
 export function usePriceRangeFilter(
   products,
@@ -69,13 +68,14 @@ export function usePriceRangeFilter(
   setSelectedMax
 ) {
   React.useEffect(() => {
-    if (!products || !products.length) return;
+    if (!products || products.length === 0) return;
 
-    // Extract correct price from API:
+    // Extract price from product or variant
     const prices = products
       .map((p) => {
-        const variantPrice =
-          p?.variants?.length ? Number(p.variants[0]?.price ?? 0) : 0;
+        const variantPrice = p?.variants?.length
+          ? Number(p.variants[0]?.price ?? 0)
+          : 0;
 
         const fallbackPrice = Number(
           p.display_price ??
@@ -92,11 +92,14 @@ export function usePriceRangeFilter(
       const min = Math.min(...prices);
       const max = Math.max(...prices);
 
+      // Update state
       setMinPrice(min);
       setMaxPrice(max);
-
       setSelectedMin(min);
       setSelectedMax(max);
     }
+
+    // Ignore missing dependency warnings for stable setter functions
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products]);
 }

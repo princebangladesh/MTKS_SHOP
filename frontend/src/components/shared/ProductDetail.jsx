@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useState } from 'react';
-import ProductOverviewSkeleton from './ProductOverviewSkeleton'; // Import your skeleton component
+import ProductOverviewSkeleton from './ProductOverviewSkeleton'; 
 
 function ProductDetail({ product }) {
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [activeVariant, setActiveVariant] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [loading, setLoading] = useState(true); // Track loading state
-
+  const [loading, setLoading] = useState(true); 
   useEffect(() => {
     if (product) {
       if (product.variants && product.variants.length > 0) {
@@ -19,7 +18,7 @@ function ProductDetail({ product }) {
       } else {
         setSelectedImage(product.image1 || null);
       }
-      setLoading(false); // Set loading to false once the product data is ready
+      setLoading(false); 
     }
   }, [product]);
 
@@ -72,7 +71,7 @@ function ProductDetail({ product }) {
               src={selectedImage}
               alt={product.name}
               className="w-full object-cover"
-              loading="lazy" // Lazy load the main image
+              loading="lazy" 
             />
           </div>
 
@@ -90,7 +89,7 @@ function ProductDetail({ product }) {
                       : 'border-gray-300'
                   }`}
                   onClick={() => handleThumbnailClick(thumb)}
-                  loading="lazy" // Lazy load the thumbnails
+                  loading="lazy" 
                 />
               ))}
             </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 
 const AboutSkeleton = () => {
-  const skeletons = [1, 2, 3]; // 3 cards
+  const skeletons = [1, 2, 3]; 
 
   return (
     <div className="py-12 px-6 md:px-12">

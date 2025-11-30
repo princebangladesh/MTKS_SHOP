@@ -70,9 +70,7 @@ export const WishlistProvider = ({ children }) => {
     localStorage.removeItem("wishlist");
   };
 
-  // -----------------------------------------
-  // INITIAL LOAD
-  // -----------------------------------------
+
   useEffect(() => {
     (async () => {
       if (isLoggedIn) await syncGuestWishlist();
@@ -90,7 +88,7 @@ export const WishlistProvider = ({ children }) => {
           product_id: product.id,
         });
 
-        // Always refetch to ensure variant images/prices appear
+  
         fetchWishlist();
       } catch (err) {
         console.error("Add to wishlist error:", err);

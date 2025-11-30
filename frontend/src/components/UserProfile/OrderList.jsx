@@ -109,7 +109,7 @@ const OrderList = () => {
         </div>
       </div>
 
-      {/* MOBILE VIEW (CARD LAYOUT) */}
+      {/* MOBILE VIEW ) */}
       <div className="md:hidden space-y-4">
         {orders.map((order) => (
           <div

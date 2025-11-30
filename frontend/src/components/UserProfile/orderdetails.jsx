@@ -6,14 +6,14 @@ import api from "../UserProfile/api";
 
 const OrderDetails = () => {
   const navigate = useNavigate();
-  const { orderId } = useParams(); // ✅ FIXED PARAM NAME
+  const { orderId } = useParams(); // 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await api.get(`/orders/${orderId}/`); // ✅ FIXED URL
+        const res = await api.get(`/orders/${orderId}/`); 
         setOrder(res.data);
       } catch (err) {
         console.error("Failed to load order:", err);

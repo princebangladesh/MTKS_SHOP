@@ -20,25 +20,25 @@ function Navbar() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation(); // ⭐ NEW  
+  const location = useLocation();
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
   const [ActiveSide, setActiveSide] = useState(true);
   const handleBar = () => setActiveSide(!ActiveSide);
 
-  /* ⭐ AUTO-FOCUS SEARCH WHEN COMING FROM FOOTER */
+
   useEffect(() => {
   if (location.state?.focusSearch) {
 
-    // open + expand
+
     setExpanded(true);
     setMobileSearchOpen(true);
 
-    // focus input
+
     setTimeout(() => inputRef.current?.focus(), 300);
 
-    // ❗ CLEAR state so refresh doesn't re-trigger
+
     navigate(location.pathname, { replace: true, state: {} });
   }
 }, [location.state]);
@@ -60,7 +60,6 @@ function Navbar() {
     return () => clearTimeout(delay);
   }, [query]);
 
-  /* CLOSE DROPDOWN WHEN CLICK OUTSIDE */
   useEffect(() => {
     const handler = (e) => {
       if (
@@ -133,7 +132,7 @@ function Navbar() {
                 placeholder="Search…"
                 className={`
                   transition-[width] duration-300 px-4 py-2 rounded-full border
-                  dark:bg-brandGreen dark:text-white
+                  dark:bg-brandGreen dark:text-white mr-[2px] mt-[1px] mb-[1px]
                   w-10
                   ${expanded ? "w-64" : "focus:w-64"}
                 `}

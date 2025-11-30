@@ -6,10 +6,9 @@ import { BASE_URL } from "../config/api";
 
 
 function TrendingList() {
-  const { loading, setLoading } = useLoader();
+  const {  setLoading } = useLoader();
       const [ProductData, setProductData] = React.useState([]);
       React.useEffect(() => {
-      // Replace this with your actual API URL
       fetch(`${BASE_URL}/tr_product_full/`)
             .then(res => res.json())
             .then(data => {

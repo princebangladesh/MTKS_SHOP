@@ -282,7 +282,6 @@ const Profile = () => {
   );
 };
 
-// FIELD COMPONENT (supports dark mode)
 const FieldRow = ({
   field,
   formData,

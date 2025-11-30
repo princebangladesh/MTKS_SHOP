@@ -28,16 +28,18 @@ function Category() {
   if (loading) return <Loader />;
 
   return (
-    <div className="container">
+    <div className="container"
+    data-aos="fade-up"
+    data-aos-delay="200"
+    >
       <div className="max-w-7xl mx-auto px-4 py-6">
 
-        {/* Category Grid (2 → 3 → 6 columns, NEVER 4) */}
         <div className="
             grid 
-            grid-cols-2        /* mobile = 2 cols */
-            sm:grid-cols-3     /* small/tablet = 3 cols */
-            md:grid-cols-3     /* medium/tablet = 3 cols */
-            lg:grid-cols-6     /* desktop = 6 cols */
+            grid-cols-2       
+            sm:grid-cols-3     
+            md:grid-cols-3     
+            lg:grid-cols-6    
             gap-4 sm:gap-6
         ">
           {CatData.map(

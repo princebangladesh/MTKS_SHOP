@@ -1,9 +1,10 @@
-
 import './App.css';
+import Aos from 'aos';
+import 'aos/dist/aos.css';
+import React from 'react';
+import { useLoader } from './components/shared/loaderContext.jsx';
 import Home from './home.jsx';
-
 import Navbar from './components/navbar.jsx';
-
 import Footer from './components/footer.jsx';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import ProductList from './components/productlist.jsx';
@@ -27,7 +28,16 @@ import ResetPassword from './components/Login/ResetPassword.jsx';
 import VerifyEmail from './components/Login/VerifyEmail.jsx';
 import FAQ from './components/Faq.jsx';
 import ScrollToTop from './components/shared/ScrollToTop.jsx';
+
 function App() {
+  React.useEffect(() => {
+    Aos.init({ duration: 800,
+      easing: 'ease-in-out-sine',
+      delay: 100,
+      offset:100
+     });
+     Aos.refresh();
+  }, []);
   return (
     <Router>
       

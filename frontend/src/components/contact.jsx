@@ -5,7 +5,6 @@ function Contact() {
      
     <div className="min-h-screen  text-gray-800 p-8">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left Side - Info */}
         <div>
           
           <h1 className="text-4xl dark:text-brandWhite font-bold mt-2 mb-4">Contact Us</h1>
@@ -33,9 +32,9 @@ function Contact() {
           </div>
         </div>
 
-        {/* Right Side - Google Map + Form */}
+
         <div className="flex flex-col gap-6">
-          {/* Google Maps Embed */}
+
           <div className="h-48 w-full rounded overflow-hidden border border-gray-300">
             <iframe
               title="Google Map"

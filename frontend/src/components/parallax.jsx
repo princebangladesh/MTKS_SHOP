@@ -39,11 +39,17 @@ function Parallax() {
 
       {/* ⭐ CENTER CONTENT */}
       <div className="relative z-10 text-center px-6">
-        <h2 className="text-3xl md:text-4xl font-bold mb-3 text-brandGreen dark:text-white drop-shadow">
+        <h2 className="text-3xl md:text-4xl font-bold mb-3 text-brandGreen dark:text-white drop-shadow"
+        data-aos="fade-up"
+        data-aos-delay="200"
+        >
           Subscribe to Our Newsletter
         </h2>
 
-        <p className="text-gray-700 dark:text-gray-300 mb-7 max-w-lg mx-auto leading-relaxed">
+        <p className="text-gray-700 dark:text-gray-300 mb-7 max-w-lg mx-auto leading-relaxed"
+        data-aos="fade-up"
+        data-aos-delay="300"
+        >
           Get exclusive deals, product drops, and updates straight to your inbox.
         </p>
 
@@ -58,6 +64,8 @@ function Parallax() {
               backdrop-blur-sm
               transition
             "
+            data-aos="fade-up"
+            data-aos-delay="400"
           >
             <input
               type="email"

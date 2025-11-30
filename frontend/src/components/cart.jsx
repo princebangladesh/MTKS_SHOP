@@ -1,6 +1,6 @@
 import React from "react";
 import { useCart } from "./shared/cartContext";
-import { useAuth } from "./shared/authContext"; // << add this
+import { useAuth } from "./shared/authContext"; 
 import { FaTrash } from "react-icons/fa";
 import CartSkeleton from "./skeleton/CartSkeleton";
 import { useNavigate } from "react-router-dom";
@@ -43,7 +43,7 @@ const Cart = () => {
     );
   };
 
-  // ⬇⬇⬇ NEW CHECKOUT HANDLER ⬇⬇⬇
+
   const handleCheckout = () => {
     if (isAuthenticated) {
       navigate("/checkout");

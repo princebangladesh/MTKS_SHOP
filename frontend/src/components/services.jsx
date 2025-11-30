@@ -2,9 +2,9 @@ import React from 'react'
 
 function Services() {
   return (
-    <div className="container py-12">
+    <div className="container py-12 overflow-hidden">
 
-      {/* FIXED 2 OR 4 COLUMN GRID */}
+
       <div
         className="
           grid 
@@ -16,6 +16,8 @@ function Services() {
           gap-8
           text-center text-gray-800 dark:text-brandWhite
         "
+      data-aos="zoom-in"
+      data-aos-delay="200"
       >
         {/* Service Item */}
         <div className="

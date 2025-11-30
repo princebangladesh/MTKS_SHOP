@@ -21,18 +21,14 @@ function ProductListView({ product }) {
   const variant = product?.variants?.length ? product.variants[0] : null;
   const categoryName =
     product?.category_name || product?.category?.name || "Category";
-
   const rating = Number(product?.rating) || 0;
   const starRating = Math.max(0, Math.min(5, Math.round(rating)));
-
   const placeholder = "https://via.placeholder.com/300x200?text=No+Image";
-
   const productImage =
     variant?.image || product?.image1 || product?.image || placeholder;
 
   const price = Number(variant?.price ?? product?.current_price ?? 0);
   const oldPrice = Number(variant?.previous_price ?? product?.previous_price ?? 0);
-
   const productName = product?.name || "Unnamed Product";
 
   const handleAdd = () => {
@@ -54,8 +50,10 @@ function ProductListView({ product }) {
 
   return (
     <div className="w-full">
+      {/* GROUP ENABLES DESKTOP HOVER REVEAL */}
       <div
         className="
+          group
           bg-[#e6ebf2] dark:bg-[#1a1a1a]
           rounded-2xl p-4
           flex items-center gap-4
@@ -68,10 +66,7 @@ function ProductListView({ product }) {
         <img
           src={productImage}
           alt={productName}
-          className="
-            w-28 h-28
-            object-cover rounded-xl
-          "
+          className="w-28 h-28 object-cover rounded-xl"
           onClick={(e) => {
             e.stopPropagation();
             navigate(`/product/${product.id}`);
@@ -84,12 +79,7 @@ function ProductListView({ product }) {
             {categoryName}
           </span>
 
-          <h3
-            className="
-              text-lg font-semibold text-black
-              dark:text-white mt-1
-            "
-          >
+          <h3 className="text-lg font-semibold text-black dark:text-white mt-1">
             {productName}
           </h3>
 
@@ -114,46 +104,59 @@ function ProductListView({ product }) {
           </div>
         </div>
 
-        {/* MOBILE BUTTONS — ALWAYS VISIBLE (JUST LIKE SCREENSHOT) */}
-        <div className="flex flex-col gap-3">
-
-          {/* HEART BUTTON */}
+        {/* ❗ MOBILE BUTTONS – ALWAYS VISIBLE (sm:hidden) */}
+        <div className="flex flex-col gap-3 sm:hidden">
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleWishlist();
             }}
-            className="
-              bg-[#062c30]
-              w-12 h-12 rounded-xl
-              flex items-center justify-center
-              shadow-md text-white
-              transition-all duration-300
-              hover:scale-110
-            "
+            className="bg-[#062c30] w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white"
           >
             <CiHeart size={22} className="text-red-400" />
           </button>
 
-          {/* CART BUTTON */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleAdd();
             }}
-            className="
-              bg-[#062c30]
-              w-12 h-12 rounded-xl
-              flex items-center justify-center
-              shadow-md text-white
-              transition-all duration-300
-              hover:scale-110
-            "
+            className="bg-[#062c30] w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white"
           >
             <FaCartPlus size={22} />
           </button>
         </div>
 
+        {/* ❗ DESKTOP BUTTONS – HIDDEN UNTIL HOVER */}
+        <div className="
+          hidden sm:flex
+          flex-col gap-3
+          absolute right-4 top-1/2 -translate-y-1/2
+          opacity-0 group-hover:opacity-100
+          transition-all duration-300
+        ">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleWishlist();
+            }}
+            className="bg-[#062c30] w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white hover:scale-110 transition"
+          >
+            <CiHeart size={22} className="text-red-400" />
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAdd();
+            }}
+            className="bg-[#062c30] w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white hover:scale-110 transition"
+          >
+            <FaCartPlus size={22} />
+          </button>
+        </div>
+
+        {/* TOAST */}
         {toast && (
           <Toast
             message={toast.message}

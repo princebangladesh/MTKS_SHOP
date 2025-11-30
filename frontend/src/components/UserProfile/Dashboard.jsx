@@ -11,7 +11,6 @@ const ChangePassword = () => <div className="bg-white dark:bg-gray-800 dark:text
 const Logout = () => <div className="bg-white dark:bg-gray-800 dark:text-gray-200 shadow rounded p-4">🚪 Logged out</div>;
 
 
-// 💡 CARD COMPONENT
 const Card = ({ icon, label, onClick }) => (
   <div
     onClick={onClick}
@@ -26,7 +25,6 @@ export default function Dashboard({ activeTab, setActiveTab }) {
   const [darkMode, setDarkMode] = useState(false);
   const location = useLocation();
 
-  /* ⭐ AUTO SET TAB WHEN NAVIGATING FROM FOOTER / LINKS */
   useEffect(() => {
     if (location.state?.tab) {
       setActiveTab(location.state.tab);
@@ -54,7 +52,6 @@ export default function Dashboard({ activeTab, setActiveTab }) {
     window.location.href = "/login";
   };
 
-  // RENDER ACTIVE TAB CONTENT
   const renderActiveTab = () => {
     switch (activeTab) {
       case "orders": return <OrderList />;

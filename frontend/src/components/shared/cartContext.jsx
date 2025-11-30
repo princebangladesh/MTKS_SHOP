@@ -1,7 +1,6 @@
-// Full regenerated CartContext with fixes applied
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { BASE_URL } from "../../config/api"; // Adjust the import path as needed
+import { BASE_URL } from "../../config/api"; 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
@@ -49,10 +48,10 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Load cart only once
+
   useEffect(() => {
     fetchCart();
-    // eslint-disable-next-line
+
   }, []);
 
   /* ----------------------------
@@ -216,7 +215,7 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
-    // Guest fix — must overwrite instead of remove
+    // Guest 
     localStorage.setItem("cart", JSON.stringify([]));
     setCart([]);
   };

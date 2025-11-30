@@ -23,7 +23,10 @@ function Featured() {
   }, []);
 
   return (
-    <div className="container">
+    <div className="container"
+    data-aos="fade-up"
+    data-aos-delay="200"
+    >
       <div className="flex justify-between items-center mt-20 mb-12 px-4">
         <h2 className="featured-title sm:text-4xl md:text-3xl font-semibold text-dark dark:text-brandWhite border-b-[6px] border-brandGreen dark:border-brandWhite pb-2">
           Featured Products
@@ -37,7 +40,7 @@ function Featured() {
         </div>
       </div>
 
-      {/* STRICT GRID: 2 → 2 → 4 (NEVER 3) */}
+
       <div
         className="
           grid 

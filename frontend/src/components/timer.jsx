@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from './shared/button';
-// Helper function to format remaining time
+
 const calculateTimeLeft = (deadline) => {
   const difference = new Date(deadline) - new Date();
   let timeLeft = {};

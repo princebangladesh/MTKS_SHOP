@@ -21,7 +21,7 @@ function Home() {
       <Services/>
       <Countdown/>
   
-      {/* Popular */}
+
       <Trending/>
       <Brandslider/>
       <Parallax/>

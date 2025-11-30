@@ -25,7 +25,10 @@ function Trending() {
   }, []);
 
   return (
-    <div className="container">
+    <div className="container overflow-hidden"
+    data-aos="slide-right"
+        data-aos-delay="200"
+    >
 
       {/* HEADER */}
       <div className="flex justify-between items-center mt-20 mb-12 px-4">
@@ -41,7 +44,7 @@ function Trending() {
         </div>
       </div>
 
-      {/* STRICT GRID: ALWAYS 2 cols or 4 cols */}
+
       <div
         className="
           grid 

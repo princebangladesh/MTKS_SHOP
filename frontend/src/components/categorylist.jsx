@@ -26,14 +26,14 @@ function CategoryList() {
 
         console.log("Fetched data:", data);
 
-        // ✅ Handle different API response shapes
+  
         let products = [];
         if (Array.isArray(data)) {
-          products = data; // API returns an array
+          products = data; 
         } else if (data.results) {
-          products = data.results; // API returns { results: [...] }
+          products = data.results; 
         } else if (data.products) {
-          products = data.products; // API returns { products: [...] }
+          products = data.products; 
         }
 
         if (isMounted) setCatData(products);

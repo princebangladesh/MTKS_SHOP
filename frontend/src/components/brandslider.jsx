@@ -40,7 +40,10 @@ const BrandSlider = () => {
   };
 
   return (
-    <div className="w-full my-4">
+    <div className="w-full my-4 overflow-hidden"
+    data-aos="zoom-in"
+    data-aos-delay="200"
+    >
 
       <h2 className="text-center text-2xl font-bold mb-6 text-dark dark:text-brandWhite">
         Most Popular Brands

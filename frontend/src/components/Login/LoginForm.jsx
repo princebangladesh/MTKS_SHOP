@@ -57,7 +57,6 @@ function LoginForm({
           }
         />
 
-        {/* Forgot Password */}
         <div className="text-right -mt-1">
           <button
             type="button"

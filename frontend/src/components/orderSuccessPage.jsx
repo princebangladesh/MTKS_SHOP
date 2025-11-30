@@ -10,7 +10,6 @@ const OrderSuccess = () => {
   const [order, setOrder] = useState(null);
 
   useEffect(() => {
-    // Load complete order details stored by Checkout.jsx
     const savedOrder = localStorage.getItem("lastOrder");
 
     if (savedOrder) {

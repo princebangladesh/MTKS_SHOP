@@ -1,7 +1,6 @@
-import { useNavigate } from "react-router-dom";
+
 
 export default function Sidebar({ activeTab, setActiveTab }) {
-  const navigate = useNavigate();
 
   const menuItems = [
     { key: "dashboard", label: "Dashboard", icon: "🏠" },
@@ -34,7 +33,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   return (
     <div
       className="
-        hidden md:block          /* 👈 Hides sidebar in mobile */
+        hidden md:block        
         w-64 p-6 shadow-md 
         bg-white dark:bg-gray-900 
         text-gray-900 dark:text-gray-200 

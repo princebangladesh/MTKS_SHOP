@@ -1,8 +1,8 @@
 import React from 'react';
 import { useCart } from '../shared/cartContext';
 const CartSkeleton = () => {
-  const { cart } = useCart(); // Simulate 4 cart items
-  const totalQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const { cart } = useCart(); 
+  
   const skeletonRows = Array.from({ length: cart.length || 4 }, (_, i) => i); // At least 4 rows
 
   return (

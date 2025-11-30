@@ -3,9 +3,7 @@ import React from "react";
 export default function FloatingInput({ label, type, value, onChange, status }) {
   const active = value?.length > 0;
 
-  // BORDER COLOR LOGIC
   let borderColor = "border-gray-400";
-
   if (status === "checking") borderColor = "border-yellow-500";
   if (status === "error") borderColor = "border-red-500";
   if (status === "success") borderColor = "border-emerald-500";
@@ -23,7 +21,7 @@ export default function FloatingInput({ label, type, value, onChange, status }) 
       />
 
       <label
-        className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all 
+        className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all pointer-events-none
           ${active ? "-top-3 text-xs font-semibold" : "top-3 text-gray-400"}`}
       >
         {label}

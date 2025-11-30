@@ -55,7 +55,7 @@ const TestimonialSlider = () => {
     speed: 500,
     autoplaySpeed: 3500,
     infinite: true,
-    slidesToShow: 3, // Adjust for responsiveness
+    slidesToShow: 3,
     slidesToScroll: 1,
     arrows: true,
     cssEase: "linear",
@@ -72,14 +72,17 @@ const TestimonialSlider = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container overflow-hidden">
 
     <div className="max-w-6xl mx-auto px-8 py-10">
     <h2 className="text-center text-2xl font-bold mb-6 text-dark dark:text-brandWhite mb-8">What Our Customers Say</h2>
 
       <Slider {...settings}>
         {testimonials.map((t, idx) => (
-          <div key={idx} className="px-3">
+          <div key={idx} className="px-3"
+          data-aos="slide-right"
+          data-aos-delay="200"
+          >
             <div className="bg-white dark:bg-black rounded-lg shadow p-6 h-full  hover:shadow-2xl transition-shadow duration-500">
                   <div className="flex items-center space-x-4">
                 <img

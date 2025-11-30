@@ -1,5 +1,3 @@
-// LoginView.jsx
-import React from "react";
 import FloatingInput from "./inputs/FloatingInput";
 import PasswordField from "./inputs/PasswordField";
 import SocialButtons from "./social/SocialButtons";
