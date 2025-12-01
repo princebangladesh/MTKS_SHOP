@@ -25,8 +25,8 @@ export default function PasswordField({
         />
 
         <label
-          className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all 
-            ${active ? "-top-3 text-xs font-semibold" : "top-3 text-gray-400"}`}
+          className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all dark:text-white 
+            ${active ? "-top-3 text-xs font-semibold " : "top-3 text-gray-400"}`}
         >
           {label}
         </label>
@@ -40,7 +40,7 @@ export default function PasswordField({
       </div>
 
       {/* PASSWORD STRENGTH BAR */}
-      {!simple && strength && value.length >= 6 && (
+      {!simple && strength && value.length >= 5 && (
         <div className="mt-2">
           <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
             <div
