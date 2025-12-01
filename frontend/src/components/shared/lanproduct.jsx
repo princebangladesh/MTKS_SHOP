@@ -56,37 +56,39 @@ function ProductLand({ product }) {
   return (
     <div
       className="
+        w-full min-w-0
         bg-white dark:bg-[#0d0d0d]
         rounded-2xl 
         border border-gray-200 dark:border-gray-700
         shadow-sm hover:shadow-xl 
         transition-all duration-300
-        p-3 flex flex-col group
+        p-3 flex flex-col min-w-0 group
       "
     >
-      {/* ================= IMAGE ================= */}
+      {/* ================= IMAGE WRAPPER ================= */}
       <div
-        className="relative rounded-xl overflow-hidden cursor-pointer"
+        className="relative rounded-xl overflow-hidden cursor-pointer w-full min-w-0"
         onClick={() => navigate(`/product/${product.id}`)}
       >
         <img
           src={displayImage}
           alt={productName}
           className="
-            w-full h-48 object-contain rounded-xl
+            w-full min-w-0
+            h-48 object-contain rounded-xl
             transition-transform duration-500
             group-hover:scale-105
           "
         />
 
-        {/* RIGHT HOVER ICONS (DESKTOP) */}
+        {/* DESKTOP ONLY HOVER ICONS */}
         <div
           className="
-            hidden md:flex flex-col gap-2
+            md:flex hidden flex-col gap-2
             absolute top-4 right-3
             opacity-0 translate-x-4
             group-hover:translate-x-0 group-hover:opacity-100
-            transition-all duration-300 z-20
+            transition-all duration-300 z-30
           "
         >
           <button
@@ -131,8 +133,8 @@ function ProductLand({ product }) {
         </div>
       </div>
 
-      {/* ================= MOBILE ICON ROW ================= */}
-      <div className="md:hidden flex justify-center gap-3 mt-3">
+      {/* ================= MOBILE ICON BAR ================= */}
+      <div className="md:hidden flex justify-center gap-1 mt-3 w-full min-w-0">
         <button
           onClick={handleWishlist}
           className="bg-brandGreen text-white p-2 rounded-full shadow"
@@ -160,23 +162,30 @@ function ProductLand({ product }) {
       </div>
 
       {/* ================= TEXT SECTION ================= */}
-      <div className="mt-3 flex flex-col flex-1">
-        <div className="flex justify-between items-center">
+      <div className="mt-3 flex flex-col flex-1 w-full min-w-0">
+        <div className="flex justify-between items-center w-full min-w-0">
           <Link to={`/category/${product.category_slug}`}>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {categoryName}
             </p>
           </Link>
 
-          <div className="text-yellow-400 text-sm">
+          <div className="text-yellow-400 text-sm min-w-0">
             {[...Array(5)].map((_, i) => (
               <span key={i}>{i < Math.floor(rating) ? "★" : "☆"}</span>
             ))}
           </div>
         </div>
 
-        {/* TITLE WITH FADE + EXPAND */}
-        <div className="mt-1 relative max-h-[44px] overflow-hidden group-hover:max-h-fit transition-all duration-300">
+        {/* TITLE WITH FADE / EXPAND */}
+        <div
+          className="
+            mt-1 relative max-h-[44px]
+            w-full min-w-0
+            overflow-hidden group-hover:max-h-fit
+            transition-all duration-300
+          "
+        >
           <div
             className="
               absolute bottom-0 left-0 w-full h-6
@@ -196,7 +205,7 @@ function ProductLand({ product }) {
               text-gray-900 dark:text-gray-100
               cursor-pointer
               line-clamp-2 group-hover:line-clamp-none
-              break-words
+              break-words w-full min-w-0
             "
             onClick={() => navigate(`/product/${product.id}`)}
           >
@@ -204,9 +213,9 @@ function ProductLand({ product }) {
           </h3>
         </div>
 
-        {/* ================= PRICE + CART BTN ================= */}
-        <div className="flex justify-between items-center mt-auto pt-3 relative">
-          <div className="flex gap-2 items-center">
+        {/* ================= PRICE & CART ================= */}
+        <div className="flex justify-between items-center mt-auto pt-3 relative w-full min-w-0">
+          <div className="flex gap-2 items-center min-w-0">
             <span className="text-brandGreen dark:text-green-300 font-bold">
               ${price.toFixed(2)}
             </span>
@@ -218,11 +227,11 @@ function ProductLand({ product }) {
             )}
           </div>
 
-          {/* Desktop Cart Button (slides in cleanly) */}
+          {/* DESKTOP ONLY CART BUTTON */}
           <button
             onClick={handleAdd}
             className="
-              hidden md:flex items-center justify-center
+              md:flex hidden items-center justify-center
               w-10 h-10 rounded-full
               bg-white dark:bg-[#1e1e1e]
               border border-gray-200 dark:border-gray-600
@@ -234,6 +243,7 @@ function ProductLand({ product }) {
               group-hover:pointer-events-auto
 
               transition-all duration-300
+              z-30
             "
           >
             <FaCartPlus size={18} />
@@ -243,7 +253,7 @@ function ProductLand({ product }) {
 
       {/* TOAST */}
       {toast && (
-        <Toast 
+        <Toast
           message={toast.message}
           title={toast.title}
           type={toast.type}

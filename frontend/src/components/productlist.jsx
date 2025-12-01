@@ -37,22 +37,19 @@ function ProductList({ products }) {
   const [showCount, setShowCount] = React.useState(10);
   const [currentPage, setCurrentPage] = React.useState(1);
 
-  /* ---------------------------------------------
-     FIXED: Persist View Mode using localStorage
-  ---------------------------------------------- */
+  /* Persist view mode */
   const [view, setView] = React.useState(() => {
-    return localStorage.getItem("productView") || "grid"; // load saved mode
+    return localStorage.getItem("productView") || "grid";
   });
-
   const isGridView = view === "grid";
 
   React.useEffect(() => {
-    localStorage.setItem("productView", view); // save mode
+    localStorage.setItem("productView", view);
   }, [view]);
 
-  /* ------------------------------- */
   const [displayedProducts, setDisplayedProducts] = React.useState([]);
-  const [priceFilteredProducts, setPriceFilteredProducts] = React.useState([]);
+  const [priceFilteredProducts, setPriceFilteredProducts] =
+    React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
   const totalPages = Math.ceil(products.length / showCount);
@@ -177,7 +174,6 @@ function ProductList({ products }) {
   ============================================ */
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-
       {/* MOBILE FILTER BUTTON */}
       <button
         onClick={() => setSidebarOpen(true)}
@@ -240,13 +236,10 @@ function ProductList({ products }) {
 
       {/* MAIN CONTENT */}
       <main className="flex-1 p-3 sm:p-6">
-
         {/* TOP CONTROLS */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-
           {/* View Switch */}
           <div className="flex items-center space-x-2">
-            {/* GRID */}
             <button
               onClick={() =>
                 handleViewChange("grid", view, setView, setLoading)
@@ -260,7 +253,6 @@ function ProductList({ products }) {
               <FaTh />
             </button>
 
-            {/* LIST */}
             <button
               onClick={() =>
                 handleViewChange("list", view, setView, setLoading)
@@ -313,9 +305,9 @@ function ProductList({ products }) {
           className={
             isGridView
               ? `
-                grid gap-6
-                auto-rows-fr
-                grid-cols-[repeat(auto-fit,minmax(170px,1fr))]
+                grid gap-6 auto-rows-fr
+                grid-cols-2
+                sm:grid-cols-[repeat(auto-fit,minmax(170px,1fr))]
               `
               : "space-y-6"
           }
