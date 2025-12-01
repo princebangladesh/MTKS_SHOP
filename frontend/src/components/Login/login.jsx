@@ -20,7 +20,6 @@ import "./login.css";
 import { BASE_URL } from "../../config/api";
 
 const LoginSkeleton = React.lazy(() => import("../skeleton/LoginSkeleton"));
-
 const LINKEDIN_REDIRECT_URI = "/login";
 
 // ========================= MAIN =========================
@@ -103,30 +102,36 @@ function Login() {
     );
   }, [signupData, emailExists, usernameExists]);
 
-  // ==================== AUTO REDIRECT ====================
+  // ================= REDIRECT IF LOGGED IN =================
   useEffect(() => {
     if (isAuthenticated) navigate("/user");
   }, [isAuthenticated]);
 
-  // ==================== GOOGLE LOGIN INIT (GIS) ====================
+  // ================= GOOGLE BUTTON INIT =================
   useEffect(() => {
-    if (!window.google) return;
+    const loadGoogleBtn = () => {
+      const root = document.getElementById("realGoogleBtn");
+      if (!root || !window.google) return;
 
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleGoogleCredential,
-    });
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+      });
 
-    window.google.accounts.id.renderButton(
-      document.getElementById("realGoogleBtn"),
-      {
+      window.google.accounts.id.renderButton(root, {
         theme: "outline",
         size: "large",
-      }
-    );
+        width: 200,
+      });
+    };
+
+    // Delay ensures DOM mounted + GIS loaded
+    const t = setTimeout(loadGoogleBtn, 300);
+
+    return () => clearTimeout(t);
   }, []);
 
-  // ==================== GOOGLE CALLBACK ====================
+  // ================= GOOGLE CALLBACK =================
   const handleGoogleCredential = async (response) => {
     const { credential: id_token } = response;
 
@@ -158,13 +163,13 @@ function Login() {
     setLoading(false);
   };
 
-  // ==================== SHAKE ====================
+  // ================= SHAKE =================
   const triggerShake = () => {
     setShakeForm(true);
     setTimeout(() => setShakeForm(false), 400);
   };
 
-  // ==================== FETCH HELPERS ====================
+  // ================= FETCH HELPERS =================
   const fetchWishlist = async () => {
     try {
       const res = await api.get("/api/wishlist/");
@@ -179,7 +184,7 @@ function Login() {
     } catch {}
   };
 
-  // ==================== LOGIN HANDLER ====================
+  // ================= LOGIN HANDLER =================
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!validLogin) return;
@@ -209,7 +214,7 @@ function Login() {
     setLoading(false);
   };
 
-  // ==================== SIGNUP HANDLER ====================
+  // ================= SIGNUP HANDLER =================
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!validSignup) return;
@@ -247,7 +252,7 @@ function Login() {
     setLoading(false);
   };
 
-  // ==================== SIGNUP COUNTDOWN ====================
+  // ================= SIGNUP COUNTDOWN =================
   useEffect(() => {
     if (signupStep !== 2) return;
 
@@ -265,7 +270,7 @@ function Login() {
     return () => clearTimeout(t);
   }, [signupStep, signupCountdown]);
 
-  // ==================== FACEBOOK LOGIN ====================
+  // ================= FACEBOOK LOGIN =================
   const handleFacebookResponse = async (response) => {
     if (!response.accessToken) return;
 
@@ -290,7 +295,7 @@ function Login() {
     setLoading(false);
   };
 
-  // ==================== LINKEDIN LOGIN ====================
+  // ================= LINKEDIN LOGIN =================
   const handleLinkedInLogin = () => {
     window.location.href =
       `https://www.linkedin.com/oauth/v2/authorization?response_type=code` +
@@ -304,16 +309,16 @@ function Login() {
     <Suspense fallback={<LoginSkeleton />}>
       <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gray-100 dark:bg-black">
 
-        {/* Hidden but Active Google Login Button */}
+        {/* ACTIVE GOOGLE BUTTON (Hidden but real) */}
         <div
           id="realGoogleBtn"
           style={{
             opacity: 0,
-            width: 0,
-            height: 0,
-            overflow: "hidden",
+            pointerEvents: "none",
+            width: "200px",
+            height: "50px",
             position: "absolute",
-            zIndex: -99,
+            left: "-9999px",
           }}
         ></div>
 
@@ -344,7 +349,7 @@ function Login() {
 
                 {!isResetStep ? (
                   <LoginView
-                    googleBtnId={"realGoogleBtn"}
+                    googleBtnId="realGoogleBtn"
                     handleLogin={handleLogin}
                     handleFacebook={handleFacebookResponse}
                     handleLinkedIn={handleLinkedInLogin}
@@ -404,8 +409,14 @@ function Login() {
 
 export default Login;
 
-// ============================== LEFT PANEL ==============================
-function LeftPanel({ isSignUp, setIsSignUp, setIsResetStep, setResetStep, setSlide }) {
+// ============================= LEFT PANEL ==============================
+function LeftPanel({
+  isSignUp,
+  setIsSignUp,
+  setIsResetStep,
+  setResetStep,
+  setSlide,
+}) {
   return (
     <div className="side side-panel">
       <div className="panel-layer panel-bg" />
