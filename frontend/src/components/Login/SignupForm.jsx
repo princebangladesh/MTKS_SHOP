@@ -24,13 +24,14 @@ function SignupView({
 
       {/* FIRST & LAST NAME */}
       <div className="flex gap-4 mb-4">
-                <FloatingInput
+        <FloatingInput
           label="First Name"
           type="text"
           value={signupData.first_name}
-          onChange={(e) => setSignupData({ ...signupData, first_name: e.target.value })}
+          onChange={(e) =>
+            setSignupData({ ...signupData, first_name: e.target.value })
+          }
         />
-
 
         <FloatingInput
           label="Last Name"
@@ -51,22 +52,26 @@ function SignupView({
           setSignupData({ ...signupData, username: e.target.value })
         }
         status={
-          checkingUsername ? "checking"
-          : usernameExists === true ? "error"
-          : usernameExists === false ? "success"
-          : null
+          checkingUsername
+            ? "checking"
+            : usernameExists === false
+            ? "error"
+            : usernameExists === true
+            ? "success"
+            : null
         }
       />
-
 
       {/* USERNAME FEEDBACK */}
       {checkingUsername && (
         <p className="text-gray-500 text-sm mb-2">⏳ Checking username…</p>
       )}
-      {usernameExists === true && (
+
+      {usernameExists === false && (
         <p className="text-red-500 text-sm mb-2">❌ Username already taken</p>
       )}
-      {usernameExists === false && signupData.username.length >= 3 && (
+
+      {usernameExists === true && signupData.username.length >= 3 && (
         <p className="text-emerald-600 text-sm mb-2">✓ Username available</p>
       )}
 
@@ -78,16 +83,27 @@ function SignupView({
         onChange={(e) =>
           setSignupData({ ...signupData, email: e.target.value })
         }
+        status={
+          checkingEmail
+            ? "checking"
+            : emailExists === false
+            ? "error"
+            : emailExists === true
+            ? "success"
+            : null
+        }
       />
 
       {/* EMAIL FEEDBACK */}
       {checkingEmail && (
         <p className="text-gray-500 text-sm mb-2">⏳ Checking email…</p>
       )}
-      {emailExists === true && (
+
+      {emailExists === false && (
         <p className="text-red-500 text-sm mb-2">❌ Email already exists</p>
       )}
-      {emailExists === false && signupData.email.length >= 5 && (
+
+      {emailExists === true && signupData.email.length >= 5 && (
         <p className="text-emerald-600 text-sm mb-2">✓ Email available</p>
       )}
 
@@ -109,27 +125,25 @@ function SignupView({
         password={signupData.password}
         value={signupData.confirmPassword}
         onChange={(e) =>
-          setSignupData({
-            ...signupData,
-            confirmPassword: e.target.value,
-          })
+          setSignupData({ ...signupData, confirmPassword: e.target.value })
         }
       />
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
+      {/* SIGNUP BUTTON DISABLE LOGIC */}
       <button
         disabled={
           !validSignup ||
-          emailExists === true ||
-          usernameExists === true ||
+          emailExists === false ||      // false = exists → error
+          usernameExists === false ||   // false = exists → error
           checkingEmail ||
           checkingUsername
         }
         className={`w-full py-3 rounded-lg font-semibold transition ${
           !validSignup ||
-          emailExists === true ||
-          usernameExists === true ||
+          emailExists === false ||
+          usernameExists === false ||
           checkingEmail ||
           checkingUsername
             ? "bg-gray-300 text-gray-600 cursor-not-allowed"

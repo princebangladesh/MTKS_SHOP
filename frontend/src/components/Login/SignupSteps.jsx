@@ -8,7 +8,6 @@ export default function SignupSteps({
   scorePassword,
   signupPasswordStrength,
   setSignupPasswordStrength,
-  handleSignup,
   validSignup,
   error,
   emailExists,
@@ -19,7 +18,9 @@ export default function SignupSteps({
   setSlide,
   countdown,
 }) {
+  // ============================================================
   // STEP 2 — SUCCESS SCREEN
+  // ============================================================
   if (signupStep === 2) {
     return (
       <div className="form-box signup">
@@ -33,15 +34,15 @@ export default function SignupSteps({
           </div>
         </div>
 
-        <p className="text-center text-gray-600 dark:text-gray-300 mb-2">
-          A verification email has been sent to:
+        <p className="text-center text-gray-600 dark:text-gray-300 mb-1">
+          Verification email sent to:
         </p>
 
-        <p className="text-center font-semibold mb-6">
+        <p className="text-center font-semibold mb-5">
           {signupData.email}
         </p>
 
-        <p className="text-center text-sm text-gray-500 mb-4">
+        <p className="text-center text-sm text-gray-500 mb-6">
           Redirecting in <b>{countdown}</b> seconds...
         </p>
 
@@ -60,7 +61,9 @@ export default function SignupSteps({
     );
   }
 
-  // STEP 1 — SIGNUP FORM
+  // ============================================================
+  // STEP 1 — SIGNUP FORM (MAIN FORM)
+  // ============================================================
   return (
     <SignupView
       signupData={signupData}
@@ -68,7 +71,6 @@ export default function SignupSteps({
       scorePassword={scorePassword}
       signupPasswordStrength={signupPasswordStrength}
       setSignupPasswordStrength={setSignupPasswordStrength}
-      handleSignup={handleSignup}
       validSignup={validSignup}
       error={error}
       emailExists={emailExists}
@@ -76,6 +78,7 @@ export default function SignupSteps({
       checkingEmail={checkingEmail}
       checkingUsername={checkingUsername}
       setIsSignUp={setIsSignUp}
+      setSlide={setSlide}
     />
   );
 }

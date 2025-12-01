@@ -1,3 +1,7 @@
+// ======================================================================
+// ============================= SIGNUP VIEW =============================
+// ======================================================================
+
 import React from "react";
 import FloatingInput from "./FloatingInput";
 import PasswordField from "./PasswordField";
@@ -9,7 +13,6 @@ export default function SignupView({
   scorePassword,
   signupPasswordStrength,
   setSignupPasswordStrength,
-  handleSignup,
   validSignup,
   error,
   emailExists,
@@ -45,20 +48,20 @@ export default function SignupView({
         />
       </div>
 
-      {/* USERNAME FIELD */}
+      {/* USERNAME */}
       <FloatingInput
         label="Username"
         type="text"
         value={signupData.username}
-        onChange={(e) => {
-          setSignupData({ ...signupData, username: e.target.value });
-        }}
+        onChange={(e) =>
+          setSignupData({ ...signupData, username: e.target.value })
+        }
         status={
           checkingUsername
             ? "checking"
-            : usernameExists === true
+            : usernameExists === true   // TRUE = exists (BAD)
             ? "error"
-            : usernameExists === false
+            : usernameExists === false  // FALSE = available (GOOD)
             ? "success"
             : null
         }
@@ -68,23 +71,25 @@ export default function SignupView({
       {checkingUsername && (
         <p className="text-gray-500 text-sm mb-2">⏳ Checking username…</p>
       )}
+
       {usernameExists === true && !checkingUsername && (
         <p className="text-red-500 text-sm mb-2">❌ Username already taken</p>
       )}
+
       {usernameExists === false &&
         signupData.username.length >= 3 &&
         !checkingUsername && (
           <p className="text-emerald-600 text-sm mb-2">✓ Username available</p>
-        )}
+      )}
 
-      {/* EMAIL FIELD */}
+      {/* EMAIL */}
       <FloatingInput
         label="Email Address"
         type="email"
         value={signupData.email}
-        onChange={(e) => {
-          setSignupData({ ...signupData, email: e.target.value });
-        }}
+        onChange={(e) =>
+          setSignupData({ ...signupData, email: e.target.value })
+        }
         status={
           checkingEmail
             ? "checking"
@@ -100,14 +105,16 @@ export default function SignupView({
       {checkingEmail && (
         <p className="text-gray-500 text-sm mb-2">⏳ Checking email…</p>
       )}
-      {emailExists === true && (
+
+      {emailExists === true && !checkingEmail && (
         <p className="text-red-500 text-sm mb-2">❌ Email already exists</p>
       )}
+
       {emailExists === false &&
         signupData.email.length >= 5 &&
         !checkingEmail && (
           <p className="text-emerald-600 text-sm mb-2">✓ Email available</p>
-        )}
+      )}
 
       {/* PASSWORD */}
       <PasswordField
@@ -121,42 +128,43 @@ export default function SignupView({
         strength={signupPasswordStrength}
       />
 
-      {/* CONFIRM PASSWORD */}
+      {/* CONFIRM */}
       <PasswordConfirmField
         label="Confirm Password"
         password={signupData.password}
         value={signupData.confirmPassword}
         onChange={(e) =>
-          setSignupData({ ...signupData, confirmPassword: e.target.value })
+          setSignupData({
+            ...signupData,
+            confirmPassword: e.target.value,
+          })
         }
       />
 
-      {/* GENERAL ERROR */}
       {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
-      {/* SUBMIT BUTTON */}
+      {/* SUBMIT */}
       <button
-            type="submit"   // 🔥 THIS IS THE FIX
-            disabled={
-            !validSignup ||
-            emailExists === true ||
-            usernameExists === true ||
-            checkingEmail ||
-            checkingUsername
-            }
-            className={`w-full py-3 rounded-lg font-semibold transition ${
-            !validSignup ||
-            emailExists === true ||
-            usernameExists === true ||
-            checkingEmail ||
-            checkingUsername
-                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                  : "bg-emerald-600 text-white hover:bg-emerald-700"
-            }`}
-            >
-            SIGN UP
-            </button>
-
+        type="submit"
+        disabled={
+          !validSignup ||
+          usernameExists === true ||
+          emailExists === true ||
+          checkingEmail ||
+          checkingUsername
+        }
+        className={`w-full py-3 rounded-lg font-semibold transition ${
+          !validSignup ||
+          usernameExists === true ||
+          emailExists === true ||
+          checkingEmail ||
+          checkingUsername
+            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+            : "bg-emerald-600 text-white hover:bg-emerald-700"
+        }`}
+      >
+        SIGN UP
+      </button>
 
       <div className="mobile-auth-link text-center mt-4">
         <button

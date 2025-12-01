@@ -4,25 +4,24 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import ResetPasswordSteps from "./ResetPasswordSteps";
 import SignupSteps from "./SignupSteps";
-
 import FloatingInput from "./FloatingInput";
 import PasswordField from "./PasswordField";
 import SocialButtons from "./SocialButtons";
 
-import { GOOGLE_CLIENT_ID, LINKEDIN_CLIENT_ID } from "../../config";
+import { GOOGLE_CLIENT_ID } from "../../config";
 import { useLoader } from "../shared/loaderContext";
 import { useAuth } from "../shared/authContext";
 import { useWishlist } from "../shared/wishlistcontext";
 import { useCart } from "../shared/cartContext";
-import api from "../../config/axios";
 
+import api from "../../config/axios";
 import "./login.css";
-import { BASE_URL } from "../../config/api";
 
 const LoginSkeleton = React.lazy(() => import("../skeleton/LoginSkeleton"));
-const LINKEDIN_REDIRECT_URI = "/login";
 
-// ========================= MAIN =========================
+// ============================================================
+// ========================== MAIN ============================
+// ============================================================
 function Login() {
   const { setLoading } = useLoader();
   const { isAuthenticated, setToken } = useAuth();
@@ -43,15 +42,11 @@ function Login() {
   const [shakeForm, setShakeForm] = useState(false);
   const [error, setError] = useState("");
 
-  // ---------------- Login data ----------------
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
-
+  // ---------------- LOGIN STATES ----------------
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [validLogin, setValidLogin] = useState(false);
 
-  // ---------------- Signup data ----------------
+  // ---------------- SIGNUP STATES ----------------
   const [signupData, setSignupData] = useState({
     first_name: "",
     last_name: "",
@@ -61,27 +56,48 @@ function Login() {
     confirmPassword: "",
   });
 
-  const [validSignup, setValidSignup] = useState(false);
   const [signupPasswordStrength, setSignupPasswordStrength] = useState({
     score: 0,
     label: "",
   });
 
-  const [emailExists, setEmailExists] = useState(null);
   const [usernameExists, setUsernameExists] = useState(null);
+  const [emailExists, setEmailExists] = useState(null);
 
-  const [checkingEmail, setCheckingEmail] = useState(false);
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+
+  const [validSignup, setValidSignup] = useState(false);
 
   const [signupStep, setSignupStep] = useState(1);
   const [signupCountdown, setSignupCountdown] = useState(5);
 
-  // ---------------- Reset Password ----------------
   const [resetEmail, setResetEmail] = useState("");
-  const [resetEmailExists, setResetEmailExists] = useState(null);
   const [resetMessage, setResetMessage] = useState("");
 
-  // ==================== VALIDATIONS ====================
+  // ============================================================
+  // =============== PASSWORD STRENGTH FUNCTION =================
+  // ============================================================
+  const scorePassword = (password) => {
+    let score = 0;
+    if (!password) return { score: 0, label: "Weak" };
+
+    if (password.length >= 6) score++;
+    if (password.length >= 10) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    let label = "Weak";
+    if (score >= 4) label = "Strong";
+    else if (score === 3) label = "Medium";
+
+    return { score, label };
+  };
+
+  // ============================================================
+  // ======================= VALIDATIONS =========================
+  // ============================================================
   useEffect(() => {
     setValidLogin(
       loginData.email.trim().length > 3 &&
@@ -91,71 +107,72 @@ function Login() {
 
   useEffect(() => {
     setValidSignup(
-      signupData.first_name.trim().length >= 2 &&
-      signupData.last_name.trim().length >= 2 &&
-      signupData.username.trim().length >= 3 &&
-      signupData.email.trim().length > 3 &&
-      signupData.password.trim().length >= 6 &&
+      signupData.first_name.length >= 2 &&
+      signupData.last_name.length >= 2 &&
+      signupData.username.length >= 3 &&
+      signupData.email.length >= 5 &&
+      signupData.password.length >= 6 &&
       signupData.password === signupData.confirmPassword &&
-      usernameExists !== true &&
-      emailExists !== true
+      usernameExists === false && // FALSE = AVAILABLE
+      emailExists === false       // FALSE = AVAILABLE
     );
-  }, [signupData, emailExists, usernameExists]);
+  }, [signupData, usernameExists, emailExists]);
 
-  // ================= REDIRECT IF LOGGED IN =================
+  // ============================================================
+  // =================== REDIRECT IF LOGGED IN ==================
+  // ============================================================
   useEffect(() => {
     if (isAuthenticated) navigate("/user");
   }, [isAuthenticated]);
 
-  // ================= GOOGLE BUTTON INIT =================
+  // ============================================================
+  // ======================== GOOGLE INIT ========================
+  // ============================================================
   useEffect(() => {
-    const loadGoogleBtn = () => {
-      const root = document.getElementById("realGoogleBtn");
-      if (!root || !window.google) return;
+    const init = () => {
+      if (!window.google) return;
 
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredential,
       });
 
-      window.google.accounts.id.renderButton(root, {
-        theme: "outline",
-        size: "large",
-        width: 200,
-      });
+      const btn = document.getElementById("realGoogleBtn");
+      if (btn) {
+        window.google.accounts.id.renderButton(btn, {
+          theme: "outline",
+          size: "large",
+          width: 200,
+        });
+      }
     };
 
-    // Delay ensures DOM mounted + GIS loaded
-    const t = setTimeout(loadGoogleBtn, 300);
-
+    const t = setTimeout(init, 400);
     return () => clearTimeout(t);
   }, []);
 
-  // ================= GOOGLE CALLBACK =================
+  // ============================================================
+  // ===================== GOOGLE CALLBACK ======================
+  // ============================================================
   const handleGoogleCredential = async (response) => {
-    const { credential: id_token } = response;
-
-    if (!id_token) {
-      setError("Google login failed: missing ID token");
-      return;
-    }
+    const idToken = response.credential;
+    if (!idToken) return setError("Google login failed");
 
     setLoading(true);
 
     try {
-      const res = await api.post("/api/auth/google/", { id_token });
+      const res = await api.post("/api/auth/google/", { id_token: idToken });
 
       const { access, refresh } = res.data;
-
       setToken(access);
+
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
       await Promise.all([fetchWishlist(), fetchCart()]);
       navigate(redirectPath, { replace: true });
 
-    } catch (err) {
-      console.log(err);
+    } catch {
       setError("Google login failed");
       triggerShake();
     }
@@ -163,13 +180,17 @@ function Login() {
     setLoading(false);
   };
 
-  // ================= SHAKE =================
+  // ============================================================
+  // ========================== SHAKE ============================
+  // ============================================================
   const triggerShake = () => {
     setShakeForm(true);
     setTimeout(() => setShakeForm(false), 400);
   };
 
-  // ================= FETCH HELPERS =================
+  // ============================================================
+  // ===================== FETCH FUNCTIONS ======================
+  // ============================================================
   const fetchWishlist = async () => {
     try {
       const res = await api.get("/api/wishlist/");
@@ -184,7 +205,9 @@ function Login() {
     } catch {}
   };
 
-  // ================= LOGIN HANDLER =================
+  // ============================================================
+  // ======================= LOGIN HANDLER =======================
+  // ============================================================
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!validLogin) return;
@@ -198,8 +221,8 @@ function Login() {
       });
 
       const { access, refresh } = res.data;
-
       setToken(access);
+
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
@@ -214,7 +237,69 @@ function Login() {
     setLoading(false);
   };
 
-  // ================= SIGNUP HANDLER =================
+  // ============================================================
+  // ==================== USERNAME CHECK =========================
+  // ============================================================
+  useEffect(() => {
+    if (signupData.username.length < 3) {
+      setUsernameExists(null);
+      return;
+    }
+
+    setCheckingUsername(true);
+
+    const delay = setTimeout(async () => {
+      try {
+        const res = await api.get("/check-user/", {
+          params: { username: signupData.username },
+        });
+
+        // BACKEND RETURNS:
+        // username_exists = true  → TAKEN
+        // username_exists = false → AVAILABLE
+        setUsernameExists(res.data.username_exists);
+
+      } catch {
+        setUsernameExists(true); // assume taken on error
+      }
+
+      setCheckingUsername(false);
+    }, 3000);
+
+    return () => clearTimeout(delay);
+  }, [signupData.username]);
+
+  // ============================================================
+  // ===================== EMAIL CHECK ===========================
+  // ============================================================
+  useEffect(() => {
+    if (signupData.email.length < 5) {
+      setEmailExists(null);
+      return;
+    }
+
+    setCheckingEmail(true);
+
+    const delay = setTimeout(async () => {
+      try {
+        const res = await api.get("/check-user/", {
+          params: { email: signupData.email },
+        });
+
+        setEmailExists(res.data.email_exists);
+
+      } catch {
+        setEmailExists(true);
+      }
+
+      setCheckingEmail(false);
+    }, 3000);
+
+    return () => clearTimeout(delay);
+  }, [signupData.email]);
+  // ============================================================
+  // ==================== SIGNUP SUBMIT ==========================
+  // ============================================================
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!validSignup) return;
@@ -230,8 +315,8 @@ function Login() {
         last_name: signupData.last_name,
       });
 
+      // Move to Step 2 animation
       setSlide("slide-right");
-
       setTimeout(() => {
         setSignupStep(2);
         setSignupCountdown(5);
@@ -240,11 +325,13 @@ function Login() {
 
     } catch (err) {
       if (err.response?.data?.email) {
+        setEmailExists(true);
         setError("❌ Email already exists");
       } else if (err.response?.data?.username) {
-        setError("❌ Username already exists");
+        setUsernameExists(true);
+        setError("❌ Username already taken");
       } else {
-        setError("Signup failed.");
+        setError("Signup failed");
       }
       triggerShake();
     }
@@ -252,7 +339,9 @@ function Login() {
     setLoading(false);
   };
 
-  // ================= SIGNUP COUNTDOWN =================
+  // ============================================================
+  // ==================== SIGNUP COUNTDOWN =======================
+  // ============================================================
   useEffect(() => {
     if (signupStep !== 2) return;
 
@@ -270,46 +359,14 @@ function Login() {
     return () => clearTimeout(t);
   }, [signupStep, signupCountdown]);
 
-  // ================= FACEBOOK LOGIN =================
-  const handleFacebookResponse = async (response) => {
-    if (!response.accessToken) return;
-
-    setLoading(true);
-
-    try {
-      const res = await api.post("/api/auth/facebook/", {
-        access_token: response.accessToken,
-      });
-
-      setToken(res.data.access);
-      localStorage.setItem("access", res.data.access);
-      localStorage.setItem("refresh", res.data.refresh);
-
-      await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate(redirectPath, { replace: true });
-
-    } catch {
-      triggerShake();
-    }
-
-    setLoading(false);
-  };
-
-  // ================= LINKEDIN LOGIN =================
-  const handleLinkedInLogin = () => {
-    window.location.href =
-      `https://www.linkedin.com/oauth/v2/authorization?response_type=code` +
-      `&client_id=${LINKEDIN_CLIENT_ID}` +
-      `&redirect_uri=${encodeURIComponent(LINKEDIN_REDIRECT_URI)}` +
-      `&scope=r_liteprofile%20r_emailaddress`;
-  };
-
-  // ========================= RENDER =========================
+  // ============================================================
+  // ======================== RETURN JSX =========================
+  // ============================================================
   return (
     <Suspense fallback={<LoginSkeleton />}>
       <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gray-100 dark:bg-black">
 
-        {/* ACTIVE GOOGLE BUTTON (Hidden but real) */}
+        {/* HIDDEN GOOGLE BUTTON ANCHOR */}
         <div
           id="realGoogleBtn"
           style={{
@@ -323,12 +380,10 @@ function Login() {
         ></div>
 
         <div
-          className={`
-            auth-shell w-full max-w-5xl bg-white dark:bg-neutral-900
-            rounded-3xl shadow-xl
-            ${isSignUp ? "signup-mode" : "signin-mode"}
-            ${shakeForm ? "animate-shake" : ""}
-          `}
+          className={`auth-shell w-full max-w-5xl bg-white dark:bg-neutral-900 
+          rounded-3xl shadow-xl
+          ${isSignUp ? "signup-mode" : "signin-mode"}
+          ${shakeForm ? "animate-shake" : ""}`}
         >
 
           {/* LEFT PANEL */}
@@ -343,16 +398,13 @@ function Login() {
           {/* RIGHT PANEL */}
           <div className="side side-form">
 
-            {/* LOGIN / RESET */}
+            {/* LOGIN / RESET PANEL */}
             <div className="form-box signin slide-container">
               <div className={`slide-panel ${slide}`}>
-
                 {!isResetStep ? (
                   <LoginView
                     googleBtnId="realGoogleBtn"
                     handleLogin={handleLogin}
-                    handleFacebook={handleFacebookResponse}
-                    handleLinkedIn={handleLinkedInLogin}
                     loginData={loginData}
                     setLoginData={setLoginData}
                     validLogin={validLogin}
@@ -369,7 +421,6 @@ function Login() {
                     setResetStep={setResetStep}
                     resetEmail={resetEmail}
                     setResetEmail={setResetEmail}
-                    resetEmailExists={resetEmailExists}
                     resetMessage={resetMessage}
                     setResetMessage={setResetMessage}
                     setLoading={setLoading}
@@ -377,11 +428,10 @@ function Login() {
                     setSlide={setSlide}
                   />
                 )}
-
               </div>
             </div>
 
-            {/* SIGNUP */}
+            {/* SIGNUP PANEL */}
             <form onSubmit={handleSignup}>
               <SignupSteps
                 signupStep={signupStep}
@@ -397,11 +447,13 @@ function Login() {
                 setIsSignUp={setIsSignUp}
                 setSlide={setSlide}
                 countdown={signupCountdown}
+                scorePassword={scorePassword}  // <<< IMPORTANT FIX
               />
             </form>
 
           </div>
         </div>
+
       </div>
     </Suspense>
   );
@@ -409,14 +461,11 @@ function Login() {
 
 export default Login;
 
-// ============================= LEFT PANEL ==============================
-function LeftPanel({
-  isSignUp,
-  setIsSignUp,
-  setIsResetStep,
-  setResetStep,
-  setSlide,
-}) {
+
+// ======================================================================
+// ============================= LEFT PANEL =============================
+// ======================================================================
+function LeftPanel({ isSignUp, setIsSignUp, setIsResetStep, setResetStep, setSlide }) {
   return (
     <div className="side side-panel">
       <div className="panel-layer panel-bg" />
@@ -428,7 +477,7 @@ function LeftPanel({
           {isSignUp ? "Welcome Back!" : "Hello, Friend!"}
         </h2>
 
-        <p className="opacity-90 mb-8 text-sm leading-relaxed text-white max-w-xs">
+        <p className="opacity-90 mb-8 text-sm text-white max-w-xs">
           {isSignUp
             ? "To keep connected with us please login using your personal info."
             : "Enter your personal details and start your journey with us."}
@@ -437,7 +486,6 @@ function LeftPanel({
         <button
           onClick={() => {
             setSlide(isSignUp ? "slide-right" : "slide-left");
-
             setTimeout(() => {
               setIsSignUp(!isSignUp);
               setIsResetStep(false);
@@ -445,8 +493,7 @@ function LeftPanel({
               setSlide("slide-center");
             }, 450);
           }}
-          className="px-10 py-3 border border-white rounded-full font-semibold
-            hover:bg-white hover:text-emerald-600 transition"
+          className="px-10 py-3 border border-white rounded-full text-white font-semibold hover:bg-white hover:text-emerald-600 transition"
         >
           {isSignUp ? "SIGN IN" : "SIGN UP"}
         </button>
@@ -455,12 +502,13 @@ function LeftPanel({
   );
 }
 
-// ============================== LOGIN VIEW =============================
+
+// ======================================================================
+// =============================== LOGIN VIEW ===========================
+// ======================================================================
 function LoginView({
   googleBtnId,
   handleLogin,
-  handleFacebook,
-  handleLinkedIn,
   loginData,
   setLoginData,
   validLogin,
@@ -473,17 +521,10 @@ function LoginView({
 }) {
   return (
     <>
-      <h2 className="text-3xl font-bold text-emerald-600 mb-6 text-center md:text-left">
-        Sign In
-      </h2>
+      <h2 className="text-3xl font-bold text-emerald-600 mb-6">Sign In</h2>
 
       <div className="flex justify-center md:justify-start gap-4 mb-6">
-        <SocialButtons
-          googleBtnId={googleBtnId}
-          setError={setError}
-          handleFacebook={handleFacebook}
-          handleLinkedIn={handleLinkedIn}
-        />
+        <SocialButtons googleBtnId={googleBtnId} setError={setError} />
       </div>
 
       <p className="text-gray-500 text-sm mb-6">or use your account</p>
@@ -491,8 +532,11 @@ function LoginView({
       <form onSubmit={handleLogin} className="space-y-4">
         <FloatingInput
           label="Email or Username"
+          type="text"
           value={loginData.email}
-          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+          onChange={(e) =>
+            setLoginData({ ...loginData, email: e.target.value })
+          }
         />
 
         <PasswordField

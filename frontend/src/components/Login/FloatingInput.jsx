@@ -14,7 +14,7 @@ export default function FloatingInput({ label, type, value, onChange, status }) 
         type={type}
         value={value}
         onChange={onChange}
-        className={`w-full px-4 pt-5 pb-2 bg-transparent border ${borderColor}
+        className={`w-full px-4 pr-10 pt-5 pb-2 bg-transparent border ${borderColor}
           dark:border-gray-600 dark:text-white text-black rounded-lg
           outline-none transition-all
           focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40`}
@@ -26,6 +26,21 @@ export default function FloatingInput({ label, type, value, onChange, status }) 
       >
         {label}
       </label>
+
+      {/* STATUS ICONS */}
+      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+        {status === "checking" && (
+          <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+        )}
+
+        {status === "error" && (
+          <span className="text-red-500 text-lg font-bold">✕</span>
+        )}
+
+        {status === "success" && (
+          <span className="text-emerald-600 text-lg font-bold">✓</span>
+        )}
+      </div>
     </div>
   );
 }
