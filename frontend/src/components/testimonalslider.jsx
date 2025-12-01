@@ -80,7 +80,7 @@ const TestimonialSlider = () => {
       <Slider {...settings}>
         {testimonials.map((t, idx) => (
           <div key={idx} className="px-3"
-          data-aos="slide-right"
+          data-aos="zoom-in"
           data-aos-delay="200"
           >
             <div className="bg-white dark:bg-black rounded-lg shadow p-6 h-full  hover:shadow-2xl transition-shadow duration-500">

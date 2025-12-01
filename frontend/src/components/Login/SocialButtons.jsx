@@ -4,28 +4,31 @@ import { FaFacebookF, FaLinkedin } from "react-icons/fa";
 import AnimatedSocialButton from "./AnimatedSocialButton";
 
 export default function SocialButtons({
-  googleBtnRef,
+  googleBtnId,
   setError,
   handleFacebook,
   handleLinkedIn,
-  handleGoogleSuccess,
 }) {
   return (
-    <div className="flex gap-6 mb-6 justify-center md:justify-start items-center">
-      
+    <div className="flex gap-6 items-center">
+
       {/* GOOGLE */}
       <AnimatedSocialButton
         color="#DB4437"
         onClick={() => {
-          setTimeout(() => setError(""), 100);
-          const btn = googleBtnRef.current?.querySelector("div[role='button']");
+          setError("");
+          const btn = document
+            .getElementById(googleBtnId)
+            .querySelector("div[role='button'], button");
+
           if (btn) btn.click();
+          else setError("Google button not ready");
         }}
         icon={
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
-            className="w-6 h-6"
             alt="Google"
+            className="w-6 h-6"
           />
         }
       />
@@ -50,7 +53,10 @@ export default function SocialButtons({
       {/* LINKEDIN */}
       <AnimatedSocialButton
         color="#0A66C2"
-        onClick={handleLinkedIn}
+        onClick={() => {
+          setError("");
+          handleLinkedIn();
+        }}
         icon={<FaLinkedin className="text-lg" />}
       />
     </div>

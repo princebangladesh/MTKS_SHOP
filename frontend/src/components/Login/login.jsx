@@ -1,8 +1,6 @@
 // ========================= IMPORTS =========================
-import React, { useState, useEffect, Suspense, useRef } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
-import FacebookLogin from "react-facebook-login/dist/facebook-login-render-props";
 
 import ResetPasswordSteps from "./ResetPasswordSteps";
 import SignupSteps from "./SignupSteps";
@@ -11,8 +9,7 @@ import FloatingInput from "./FloatingInput";
 import PasswordField from "./PasswordField";
 import SocialButtons from "./SocialButtons";
 
-
-import { GOOGLE_CLIENT_ID,LINKEDIN_CLIENT_ID } from "../../config";
+import { GOOGLE_CLIENT_ID, LINKEDIN_CLIENT_ID } from "../../config";
 import { useLoader } from "../shared/loaderContext";
 import { useAuth } from "../shared/authContext";
 import { useWishlist } from "../shared/wishlistcontext";
@@ -26,9 +23,7 @@ const LoginSkeleton = React.lazy(() => import("../skeleton/LoginSkeleton"));
 
 const LINKEDIN_REDIRECT_URI = "/login";
 
-
-// MAIN LOGIN COMPONENT
-
+// ========================= MAIN =========================
 function Login() {
   const { setLoading } = useLoader();
   const { isAuthenticated, setToken } = useAuth();
@@ -37,13 +32,11 @@ function Login() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const googleBtnRef = useRef(null);
 
   const params = new URLSearchParams(location.search);
   const redirectPath = params.get("redirect") || "/user";
 
-
-  // UI STATES
+  // ---------------- UI STATES ----------------
   const [isSignUp, setIsSignUp] = useState(false);
   const [isResetStep, setIsResetStep] = useState(false);
   const [resetStep, setResetStep] = useState(1);
@@ -51,7 +44,7 @@ function Login() {
   const [shakeForm, setShakeForm] = useState(false);
   const [error, setError] = useState("");
 
-  // LOGIN FORM
+  // ---------------- Login data ----------------
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
@@ -59,7 +52,7 @@ function Login() {
 
   const [validLogin, setValidLogin] = useState(false);
 
-  // SIGNUP FORM
+  // ---------------- Signup data ----------------
   const [signupData, setSignupData] = useState({
     first_name: "",
     last_name: "",
@@ -75,130 +68,115 @@ function Login() {
     label: "",
   });
 
-  // LIVE VALIDATION STATES
   const [emailExists, setEmailExists] = useState(null);
   const [usernameExists, setUsernameExists] = useState(null);
+
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [checkingUsername, setCheckingUsername] = useState(false);
 
-  // SIGNUP STEP CONTROL
   const [signupStep, setSignupStep] = useState(1);
   const [signupCountdown, setSignupCountdown] = useState(5);
 
-  // RESET PASSWORD FORM
+  // ---------------- Reset Password ----------------
   const [resetEmail, setResetEmail] = useState("");
   const [resetEmailExists, setResetEmailExists] = useState(null);
   const [resetMessage, setResetMessage] = useState("");
 
-  // ==================== LOGIN VALIDATION ====================
+  // ==================== VALIDATIONS ====================
   useEffect(() => {
     setValidLogin(
       loginData.email.trim().length > 3 &&
-        loginData.password.trim().length >= 6
+      loginData.password.trim().length >= 6
     );
   }, [loginData]);
 
-  // ==================== SIGNUP VALIDATION (CORRECTED) ====================
   useEffect(() => {
     setValidSignup(
       signupData.first_name.trim().length >= 2 &&
-        signupData.last_name.trim().length >= 2 &&
-        signupData.username.trim().length >= 3 &&
-        signupData.email.trim().length > 3 &&
-        signupData.password.trim().length >= 6 &&
-        signupData.password === signupData.confirmPassword &&
-        usernameExists !== true &&
-        emailExists !== true
+      signupData.last_name.trim().length >= 2 &&
+      signupData.username.trim().length >= 3 &&
+      signupData.email.trim().length > 3 &&
+      signupData.password.trim().length >= 6 &&
+      signupData.password === signupData.confirmPassword &&
+      usernameExists !== true &&
+      emailExists !== true
     );
   }, [signupData, emailExists, usernameExists]);
 
-  // ==================== AUTO REDIRECT IF LOGGED IN ====================
+  // ==================== AUTO REDIRECT ====================
   useEffect(() => {
     if (isAuthenticated) navigate("/user");
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
-  // ==================== LIVE EMAIL CHECK ====================
+  // ==================== GOOGLE LOGIN INIT (GIS) ====================
   useEffect(() => {
-    if (!signupData.email || signupData.email.length < 5) {
-      setEmailExists(null);
+    if (!window.google) return;
+
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleCredential,
+    });
+
+    window.google.accounts.id.renderButton(
+      document.getElementById("realGoogleBtn"),
+      {
+        theme: "outline",
+        size: "large",
+      }
+    );
+  }, []);
+
+  // ==================== GOOGLE CALLBACK ====================
+  const handleGoogleCredential = async (response) => {
+    const { credential: id_token } = response;
+
+    if (!id_token) {
+      setError("Google login failed: missing ID token");
       return;
     }
 
-    setCheckingEmail(true);
+    setLoading(true);
 
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get(`${BASE_URL}/check-user/?email=${signupData.email}`);
-        setEmailExists(res.data.email_exists);
-      } catch {
-        setEmailExists(null);
-      }
-      setCheckingEmail(false);
-    }, 3000);
+    try {
+      const res = await api.post("/api/auth/google/", { id_token });
 
-    return () => clearTimeout(timer);
-  }, [signupData.email]);
+      const { access, refresh } = res.data;
 
-  // ==================== LIVE USERNAME CHECK ====================
-  useEffect(() => {
-    if (!signupData.username || signupData.username.length < 3) {
-      setUsernameExists(null);
-      return;
+      setToken(access);
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+
+      await Promise.all([fetchWishlist(), fetchCart()]);
+      navigate(redirectPath, { replace: true });
+
+    } catch (err) {
+      console.log(err);
+      setError("Google login failed");
+      triggerShake();
     }
 
-    setCheckingUsername(true);
+    setLoading(false);
+  };
 
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get(`${BASE_URL}/check-user/?username=${signupData.username}`);
-        setUsernameExists(res.data.username_exists);
-      } catch {
-        setUsernameExists(null);
-      }
-      setCheckingUsername(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [signupData.username]);
-
-  // ==================== RESET PASSWORD EMAIL CHECK ====================
-  useEffect(() => {
-    if (!resetEmail || resetEmail.length < 5) {
-      setResetEmailExists(null);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get(`${BASE_URL}/check-user/?email=${resetEmail}`);
-        setResetEmailExists(res.data.email_exists);
-      } catch {
-        setResetEmailExists(null);
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [resetEmail]);
-
-  // ==================== SHAKE EFFECT ====================
+  // ==================== SHAKE ====================
   const triggerShake = () => {
     setShakeForm(true);
     setTimeout(() => setShakeForm(false), 400);
   };
 
-  // ==================== PASSWORD STRENGTH ====================
-  const scorePassword = (password) => {
-    let score = 0;
-    if (password.length >= 6) score++;
-    if (password.length >= 10) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
+  // ==================== FETCH HELPERS ====================
+  const fetchWishlist = async () => {
+    try {
+      const res = await api.get("/api/wishlist/");
+      setWishlist(res.data[0]?.products ?? []);
+    } catch {}
+  };
 
-    if (score <= 1) return { score, label: "Weak" };
-    if (score === 2) return { score, label: "Okay" };
-    if (score === 3) return { score, label: "Strong" };
-    return { score, label: "Very Strong" };
+  const fetchCart = async () => {
+    try {
+      const res = await api.get("/api/cart-items/");
+      setCart(res.data?.items ?? []);
+    } catch {}
   };
 
   // ==================== LOGIN HANDLER ====================
@@ -231,20 +209,6 @@ function Login() {
     setLoading(false);
   };
 
-  const fetchWishlist = async () => {
-    try {
-      const res = await api.get("/api/wishlist/");
-      setWishlist(res.data[0]?.products ?? []);
-    } catch {}
-  };
-
-  const fetchCart = async () => {
-    try {
-      const res = await api.get("/api/cart-items/");
-      setCart(res.data?.items ?? []);
-    } catch {}
-  };
-
   // ==================== SIGNUP HANDLER ====================
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -261,7 +225,6 @@ function Login() {
         last_name: signupData.last_name,
       });
 
-      // SUCCESS → GO TO STEP 2
       setSlide("slide-right");
 
       setTimeout(() => {
@@ -286,58 +249,26 @@ function Login() {
 
   // ==================== SIGNUP COUNTDOWN ====================
   useEffect(() => {
-  if (signupStep !== 2) return;
+    if (signupStep !== 2) return;
 
-  if (signupCountdown === 0) {
-    // 1. slide signup out
-    setSlide("slide-right");
-
-    setTimeout(() => {
-      // 2. switch mode
-      setIsSignUp(false);
-      setSignupStep(1);
-
-      // 3. (IMPORTANT FIX!) Reset slide so login panel is visible
-      setSlide("slide-center");
-    }, 450);
-
-    return;
-  }
-
-  const t = setTimeout(() => {
-    setSignupCountdown((c) => c - 1);
-  }, 1000);
-
-  return () => clearTimeout(t);
-}, [signupStep, signupCountdown]);
-
-  // ==================== GOOGLE LOGIN ====================
-  const handleGoogleSuccess = async (response) => {
-    setLoading(true);
-    try {
-      const res = await api.post("/api/auth/google/", {
-        id_token: response.credential,
-      });
-
-      const { access } = res.data;
-
-      setToken(access);
-      localStorage.setItem("access", access);
-      localStorage.setItem("refresh", res.data.refresh);
-
-      await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate(redirectPath, { replace: true });
-
-    } catch {
-      triggerShake();
+    if (signupCountdown === 0) {
+      setSlide("slide-right");
+      setTimeout(() => {
+        setIsSignUp(false);
+        setSignupStep(1);
+        setSlide("slide-center");
+      }, 450);
+      return;
     }
 
-    setLoading(false);
-  };
+    const t = setTimeout(() => setSignupCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [signupStep, signupCountdown]);
 
   // ==================== FACEBOOK LOGIN ====================
   const handleFacebookResponse = async (response) => {
     if (!response.accessToken) return;
+
     setLoading(true);
 
     try {
@@ -368,124 +299,113 @@ function Login() {
       `&scope=r_liteprofile%20r_emailaddress`;
   };
 
-  // ==================== RENDER UI ====================
+  // ========================= RENDER =========================
   return (
-    <>
-      <Suspense fallback={<LoginSkeleton />}>
-        <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gray-100 dark:bg-black">
+    <Suspense fallback={<LoginSkeleton />}>
+      <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gray-100 dark:bg-black">
 
-          <div
-            className={`
-              auth-shell w-full max-w-5xl bg-white dark:bg-neutral-900
-              rounded-3xl shadow-xl
-              ${isSignUp ? "signup-mode" : "signin-mode"}
-              ${shakeForm ? "animate-shake" : ""}
-            `}
-          >
+        {/* Hidden but Active Google Login Button */}
+        <div
+          id="realGoogleBtn"
+          style={{
+            opacity: 0,
+            width: 0,
+            height: 0,
+            overflow: "hidden",
+            position: "absolute",
+            zIndex: -99,
+          }}
+        ></div>
 
-            {/* LEFT PANEL */}
-            <LeftPanel
-              isSignUp={isSignUp}
-              setIsSignUp={setIsSignUp}
-              setIsResetStep={setIsResetStep}
-              setResetStep={setResetStep}
-              setSlide={setSlide}
-            />
+        <div
+          className={`
+            auth-shell w-full max-w-5xl bg-white dark:bg-neutral-900
+            rounded-3xl shadow-xl
+            ${isSignUp ? "signup-mode" : "signin-mode"}
+            ${shakeForm ? "animate-shake" : ""}
+          `}
+        >
 
-            {/* RIGHT SIDE */}
-            <div className="side side-form">
+          {/* LEFT PANEL */}
+          <LeftPanel
+            isSignUp={isSignUp}
+            setIsSignUp={setIsSignUp}
+            setIsResetStep={setIsResetStep}
+            setResetStep={setResetStep}
+            setSlide={setSlide}
+          />
 
-              {/* LOGIN / RESET */}
-              <div className="form-box signin slide-container">
-                <div className={`slide-panel ${slide}`}>
+          {/* RIGHT PANEL */}
+          <div className="side side-form">
 
-                  {!isResetStep ? (
-                    <LoginView
-                      googleBtnRef={googleBtnRef}
-                      handleFacebook={handleFacebookResponse}
-                      handleGoogleSuccess={handleGoogleSuccess}
-                      handleLinkedIn={handleLinkedInLogin}
-                      handleLogin={handleLogin}
-                      loginData={loginData}
-                      setLoginData={setLoginData}
-                      validLogin={validLogin}
-                      error={error}
-                      setIsSignUp={setIsSignUp}
-                      setIsResetStep={setIsResetStep}
-                      setResetStep={setResetStep}
-                      setError={setError}
-                      setSlide={setSlide}
-                    />
-                  ) : (
-                    <ResetPasswordSteps
-                      resetStep={resetStep}
-                      setResetStep={setResetStep}
-                      resetEmail={resetEmail}
-                      setResetEmail={setResetEmail}
-                      resetEmailExists={resetEmailExists}
-                      resetMessage={resetMessage}
-                      setResetMessage={setResetMessage}
-                      setLoading={setLoading}
-                      setIsResetStep={setIsResetStep}
-                      setSlide={setSlide}
-                    />
-                  )}
+            {/* LOGIN / RESET */}
+            <div className="form-box signin slide-container">
+              <div className={`slide-panel ${slide}`}>
 
-                </div>
+                {!isResetStep ? (
+                  <LoginView
+                    googleBtnId={"realGoogleBtn"}
+                    handleLogin={handleLogin}
+                    handleFacebook={handleFacebookResponse}
+                    handleLinkedIn={handleLinkedInLogin}
+                    loginData={loginData}
+                    setLoginData={setLoginData}
+                    validLogin={validLogin}
+                    error={error}
+                    setIsSignUp={setIsSignUp}
+                    setIsResetStep={setIsResetStep}
+                    setResetStep={setResetStep}
+                    setError={setError}
+                    setSlide={setSlide}
+                  />
+                ) : (
+                  <ResetPasswordSteps
+                    resetStep={resetStep}
+                    setResetStep={setResetStep}
+                    resetEmail={resetEmail}
+                    setResetEmail={setResetEmail}
+                    resetEmailExists={resetEmailExists}
+                    resetMessage={resetMessage}
+                    setResetMessage={setResetMessage}
+                    setLoading={setLoading}
+                    setIsResetStep={setIsResetStep}
+                    setSlide={setSlide}
+                  />
+                )}
+
               </div>
-
-              {/* SIGNUP FORM */}
-              <form onSubmit={handleSignup}>
-                <SignupSteps
-                  signupStep={signupStep}
-                  signupData={signupData}
-                  setSignupData={setSignupData}
-                  scorePassword={scorePassword}
-                  signupPasswordStrength={signupPasswordStrength}
-                  setSignupPasswordStrength={setSignupPasswordStrength}
-                  handleSignup={handleSignup}
-                  validSignup={validSignup}
-                  error={error}
-                  emailExists={emailExists}
-                  usernameExists={usernameExists}
-                  checkingEmail={checkingEmail}
-                  checkingUsername={checkingUsername}
-                  setIsSignUp={setIsSignUp}
-                  setSlide={setSlide}
-                  countdown={signupCountdown}
-                />
-              </form>
-
             </div>
-          </div>
 
-          {/* HIDDEN GOOGLE */}
-          <div ref={googleBtnRef}
-            style={{ position: "absolute", left: "-9999px", top: "0", pointerEvents: "none" }}
-          >
-            <GoogleLogin
-              clientId={GOOGLE_CLIENT_ID}
-              onSuccess={handleGoogleSuccess}
-              onError={() => setError("Google login failed")}
-            />
-          </div>
+            {/* SIGNUP */}
+            <form onSubmit={handleSignup}>
+              <SignupSteps
+                signupStep={signupStep}
+                signupData={signupData}
+                setSignupData={setSignupData}
+                signupPasswordStrength={signupPasswordStrength}
+                setSignupPasswordStrength={setSignupPasswordStrength}
+                validSignup={validSignup}
+                emailExists={emailExists}
+                usernameExists={usernameExists}
+                checkingEmail={checkingEmail}
+                checkingUsername={checkingUsername}
+                setIsSignUp={setIsSignUp}
+                setSlide={setSlide}
+                countdown={signupCountdown}
+              />
+            </form>
 
+          </div>
         </div>
-      </Suspense>
-    </>
+      </div>
+    </Suspense>
   );
 }
 
 export default Login;
 
-// ============================= LEFT PANEL ==============================
-function LeftPanel({
-  isSignUp,
-  setIsSignUp,
-  setIsResetStep,
-  setResetStep,
-  setSlide,
-}) {
+// ============================== LEFT PANEL ==============================
+function LeftPanel({ isSignUp, setIsSignUp, setIsResetStep, setResetStep, setSlide }) {
   return (
     <div className="side side-panel">
       <div className="panel-layer panel-bg" />
@@ -497,7 +417,7 @@ function LeftPanel({
           {isSignUp ? "Welcome Back!" : "Hello, Friend!"}
         </h2>
 
-        <p className="opacity-90 mb-8 text-sm max-w-xs leading-relaxed text-white">
+        <p className="opacity-90 mb-8 text-sm leading-relaxed text-white max-w-xs">
           {isSignUp
             ? "To keep connected with us please login using your personal info."
             : "Enter your personal details and start your journey with us."}
@@ -526,10 +446,9 @@ function LeftPanel({
 
 // ============================== LOGIN VIEW =============================
 function LoginView({
-  googleBtnRef,
+  googleBtnId,
   handleLogin,
   handleFacebook,
-  handleGoogleSuccess,
   handleLinkedIn,
   loginData,
   setLoginData,
@@ -549,26 +468,20 @@ function LoginView({
 
       <div className="flex justify-center md:justify-start gap-4 mb-6">
         <SocialButtons
-          googleBtnRef={googleBtnRef}
+          googleBtnId={googleBtnId}
           setError={setError}
           handleFacebook={handleFacebook}
           handleLinkedIn={handleLinkedIn}
-          handleGoogleSuccess={handleGoogleSuccess}
         />
       </div>
 
-      <p className="text-gray-500 text-center md:text-left text-sm mb-6">
-        or use your account
-      </p>
+      <p className="text-gray-500 text-sm mb-6">or use your account</p>
 
       <form onSubmit={handleLogin} className="space-y-4">
         <FloatingInput
           label="Email or Username"
-          type="text"
           value={loginData.email}
-          onChange={(e) =>
-            setLoginData({ ...loginData, email: e.target.value })
-          }
+          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
         />
 
         <PasswordField
@@ -592,20 +505,20 @@ function LoginView({
                 setSlide("slide-center");
               }, 450);
             }}
-            className="text-emerald-600 underline hover:text-emerald-700 text-sm"
+            className="text-emerald-600 underline text-sm"
           >
             Forgot Password?
           </button>
         </div>
 
-        {error && <p className="text-red-500 text-sm fade-in">{error}</p>}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button
           type="submit"
           disabled={!validLogin}
           className={`w-full py-3 rounded-lg font-semibold transition ${
             validLogin
-              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+              ? "bg-emerald-600 hover:bg-emerald-700 text-white"
               : "bg-gray-300 text-gray-600 cursor-not-allowed"
           }`}
         >
@@ -613,7 +526,7 @@ function LoginView({
         </button>
       </form>
 
-      <div className="mobile-auth-link text-center mt-4">
+      <div className="text-center mt-4">
         <button
           onClick={() => setIsSignUp(true)}
           className="underline text-emerald-600"

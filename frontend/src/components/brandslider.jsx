@@ -50,7 +50,7 @@ const BrandSlider = () => {
       </h2>
 
       {/* Slider section NO padding/margin */}
-      <div className="w-full border-t-2 border-b-2 border-brandBlue dark:Caro-bg">
+      <div className="w-full border-t-2 border-b-2 border-brandBlue dark:Caro-bg py-10">
 
         <Slider {...settings}>
           {BrandData.map((brand) => {
