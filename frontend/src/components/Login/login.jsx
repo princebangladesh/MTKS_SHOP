@@ -1,4 +1,5 @@
-// ========================= IMPORTS =========================
+/* global google */
+
 import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
@@ -11,8 +12,7 @@ import FloatingInput from "./FloatingInput";
 import PasswordField from "./PasswordField";
 import SocialButtons from "./SocialButtons";
 
-
-import { GOOGLE_CLIENT_ID,LINKEDIN_CLIENT_ID } from "../../config";
+import { GOOGLE_CLIENT_ID, LINKEDIN_CLIENT_ID } from "../../config";
 import { useLoader } from "../shared/loaderContext";
 import { useAuth } from "../shared/authContext";
 import { useWishlist } from "../shared/wishlistcontext";
@@ -27,8 +27,9 @@ const LoginSkeleton = React.lazy(() => import("../skeleton/LoginSkeleton"));
 const LINKEDIN_REDIRECT_URI = "/login";
 
 
+// =====================================================================
 // MAIN LOGIN COMPONENT
-
+// =====================================================================
 function Login() {
   const { setLoading } = useLoader();
   const { isAuthenticated, setToken } = useAuth();
@@ -42,7 +43,6 @@ function Login() {
   const params = new URLSearchParams(location.search);
   const redirectPath = params.get("redirect") || "/user";
 
-
   // UI STATES
   const [isSignUp, setIsSignUp] = useState(false);
   const [isResetStep, setIsResetStep] = useState(false);
@@ -52,11 +52,7 @@ function Login() {
   const [error, setError] = useState("");
 
   // LOGIN FORM
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [validLogin, setValidLogin] = useState(false);
 
   // SIGNUP FORM
@@ -71,122 +67,59 @@ function Login() {
 
   const [validSignup, setValidSignup] = useState(false);
   const [signupPasswordStrength, setSignupPasswordStrength] = useState({
-    score: 0,
-    label: "",
+    score: 0, label: ""
   });
 
-  // LIVE VALIDATION STATES
+  // VALIDATION
   const [emailExists, setEmailExists] = useState(null);
   const [usernameExists, setUsernameExists] = useState(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [checkingUsername, setCheckingUsername] = useState(false);
 
-  // SIGNUP STEP CONTROL
+  // SIGNUP FLOW
   const [signupStep, setSignupStep] = useState(1);
   const [signupCountdown, setSignupCountdown] = useState(5);
 
-  // RESET PASSWORD FORM
+  // RESET
   const [resetEmail, setResetEmail] = useState("");
   const [resetEmailExists, setResetEmailExists] = useState(null);
   const [resetMessage, setResetMessage] = useState("");
 
-  // ==================== LOGIN VALIDATION ====================
+  // LOGIN VALIDATION
   useEffect(() => {
     setValidLogin(
       loginData.email.trim().length > 3 &&
-        loginData.password.trim().length >= 6
+      loginData.password.trim().length >= 6
     );
   }, [loginData]);
 
-  // ==================== SIGNUP VALIDATION (CORRECTED) ====================
+  // SIGNUP VALIDATION
   useEffect(() => {
     setValidSignup(
       signupData.first_name.trim().length >= 2 &&
-        signupData.last_name.trim().length >= 2 &&
-        signupData.username.trim().length >= 3 &&
-        signupData.email.trim().length > 3 &&
-        signupData.password.trim().length >= 6 &&
-        signupData.password === signupData.confirmPassword &&
-        usernameExists !== true &&
-        emailExists !== true
+      signupData.last_name.trim().length >= 2 &&
+      signupData.username.trim().length >= 3 &&
+      signupData.email.trim().length > 3 &&
+      signupData.password.trim().length >= 6 &&
+      signupData.password === signupData.confirmPassword &&
+      usernameExists !== true &&
+      emailExists !== true
     );
   }, [signupData, emailExists, usernameExists]);
 
-  // ==================== AUTO REDIRECT IF LOGGED IN ====================
+  // REDIRECT IF LOGGED IN
   useEffect(() => {
     if (isAuthenticated) navigate("/user");
   }, [isAuthenticated, navigate]);
 
-  // ==================== LIVE EMAIL CHECK ====================
-  useEffect(() => {
-    if (!signupData.email || signupData.email.length < 5) {
-      setEmailExists(null);
-      return;
-    }
 
-    setCheckingEmail(true);
-
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get(`${BASE_URL}/check-user/?email=${signupData.email}`);
-        setEmailExists(res.data.email_exists);
-      } catch {
-        setEmailExists(null);
-      }
-      setCheckingEmail(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [signupData.email]);
-
-  // ==================== LIVE USERNAME CHECK ====================
-  useEffect(() => {
-    if (!signupData.username || signupData.username.length < 3) {
-      setUsernameExists(null);
-      return;
-    }
-
-    setCheckingUsername(true);
-
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get(`${BASE_URL}/check-user/?username=${signupData.username}`);
-        setUsernameExists(res.data.username_exists);
-      } catch {
-        setUsernameExists(null);
-      }
-      setCheckingUsername(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [signupData.username]);
-
-  // ==================== RESET PASSWORD EMAIL CHECK ====================
-  useEffect(() => {
-    if (!resetEmail || resetEmail.length < 5) {
-      setResetEmailExists(null);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get(`${BASE_URL}/check-user/?email=${resetEmail}`);
-        setResetEmailExists(res.data.email_exists);
-      } catch {
-        setResetEmailExists(null);
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [resetEmail]);
-
-  // ==================== SHAKE EFFECT ====================
+  // SHAKE EFFECT
   const triggerShake = () => {
     setShakeForm(true);
     setTimeout(() => setShakeForm(false), 400);
   };
 
-  // ==================== PASSWORD STRENGTH ====================
+  // PASSWORD STRENGTH
   const scorePassword = (password) => {
     let score = 0;
     if (password.length >= 6) score++;
@@ -201,117 +134,15 @@ function Login() {
     return { score, label: "Very Strong" };
   };
 
-  // ==================== LOGIN HANDLER ====================
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!validLogin) return;
 
-    setLoading(true);
-
-    try {
-      const res = await api.post("/api/token/", {
-        username: loginData.email,
-        password: loginData.password,
-      });
-
-      const { access, refresh } = res.data;
-
-      setToken(access);
-      localStorage.setItem("access", access);
-      localStorage.setItem("refresh", refresh);
-
-      await Promise.all([fetchWishlist(), fetchCart()]);
-      navigate(redirectPath, { replace: true });
-
-    } catch {
-      setError("Invalid login credentials");
-      triggerShake();
-    }
-
-    setLoading(false);
+  // GOOGLE → TRIGGER HIDDEN BUTTON
+  const triggerGoogleLogin = () => {
+    const btn = googleBtnRef.current?.querySelector("div[role='button']");
+    if (btn) btn.click();
   };
 
-  const fetchWishlist = async () => {
-    try {
-      const res = await api.get("/api/wishlist/");
-      setWishlist(res.data[0]?.products ?? []);
-    } catch {}
-  };
 
-  const fetchCart = async () => {
-    try {
-      const res = await api.get("/api/cart-items/");
-      setCart(res.data?.items ?? []);
-    } catch {}
-  };
-
-  // ==================== SIGNUP HANDLER ====================
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    if (!validSignup) return;
-
-    setLoading(true);
-
-    try {
-      await api.post("/auth/registration/", {
-        username: signupData.username,
-        email: signupData.email,
-        password: signupData.password,
-        first_name: signupData.first_name,
-        last_name: signupData.last_name,
-      });
-
-      // SUCCESS → GO TO STEP 2
-      setSlide("slide-right");
-
-      setTimeout(() => {
-        setSignupStep(2);
-        setSignupCountdown(5);
-        setSlide("slide-center");
-      }, 450);
-
-    } catch (err) {
-      if (err.response?.data?.email) {
-        setError("❌ Email already exists");
-      } else if (err.response?.data?.username) {
-        setError("❌ Username already exists");
-      } else {
-        setError("Signup failed.");
-      }
-      triggerShake();
-    }
-
-    setLoading(false);
-  };
-
-  // ==================== SIGNUP COUNTDOWN ====================
-  useEffect(() => {
-  if (signupStep !== 2) return;
-
-  if (signupCountdown === 0) {
-    // 1. slide signup out
-    setSlide("slide-right");
-
-    setTimeout(() => {
-      // 2. switch mode
-      setIsSignUp(false);
-      setSignupStep(1);
-
-      // 3. (IMPORTANT FIX!) Reset slide so login panel is visible
-      setSlide("slide-center");
-    }, 450);
-
-    return;
-  }
-
-  const t = setTimeout(() => {
-    setSignupCountdown((c) => c - 1);
-  }, 1000);
-
-  return () => clearTimeout(t);
-}, [signupStep, signupCountdown]);
-
-  // ==================== GOOGLE LOGIN ====================
+  // GOOGLE SUCCESS
   const handleGoogleSuccess = async (response) => {
     setLoading(true);
     try {
@@ -331,15 +162,15 @@ function Login() {
     } catch {
       triggerShake();
     }
-
     setLoading(false);
   };
 
-  // ==================== FACEBOOK LOGIN ====================
+
+  // FACEBOOK LOGIN
   const handleFacebookResponse = async (response) => {
     if (!response.accessToken) return;
-    setLoading(true);
 
+    setLoading(true);
     try {
       const res = await api.post("/api/auth/facebook/", {
         access_token: response.accessToken,
@@ -355,11 +186,11 @@ function Login() {
     } catch {
       triggerShake();
     }
-
     setLoading(false);
   };
 
-  // ==================== LINKEDIN LOGIN ====================
+
+  // LINKEDIN LOGIN
   const handleLinkedInLogin = () => {
     window.location.href =
       `https://www.linkedin.com/oauth/v2/authorization?response_type=code` +
@@ -368,10 +199,115 @@ function Login() {
       `&scope=r_liteprofile%20r_emailaddress`;
   };
 
-  // ==================== RENDER UI ====================
+
+  // LOGIN HANDLER
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!validLogin) return;
+
+    setLoading(true);
+    try {
+      const res = await api.post("/api/token/", {
+        username: loginData.email,
+        password: loginData.password,
+      });
+
+      const { access, refresh } = res.data;
+
+      setToken(access);
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+
+      await Promise.all([fetchWishlist(), fetchCart()]);
+      navigate(redirectPath, { replace: true });
+
+    } catch {
+      setError("Invalid login credentials");
+      triggerShake();
+    }
+    setLoading(false);
+  };
+
+
+  const fetchWishlist = async () => {
+    try {
+      const res = await api.get("/api/wishlist/");
+      setWishlist(res.data[0]?.products ?? []);
+    } catch {}
+  };
+
+  const fetchCart = async () => {
+    try {
+      const res = await api.get("/api/cart-items/");
+      setCart(res.data?.items ?? []);
+    } catch {}
+  };
+
+
+  // SIGNUP HANDLER
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    if (!validSignup) return;
+
+    setLoading(true);
+
+    try {
+      await api.post("/auth/registration/", {
+        username: signupData.username,
+        email: signupData.email,
+        password: signupData.password,
+        first_name: signupData.first_name,
+        last_name: signupData.last_name,
+      });
+
+      setSlide("slide-right");
+      setTimeout(() => {
+        setSignupStep(2);
+        setSignupCountdown(5);
+        setSlide("slide-center");
+      }, 450);
+
+    } catch (err) {
+      if (err.response?.data?.email) setError("❌ Email already exists");
+      else if (err.response?.data?.username) setError("❌ Username already exists");
+      else setError("Signup failed.");
+
+      triggerShake();
+    }
+
+    setLoading(false);
+  };
+
+
+  // SIGNUP COUNTDOWN
+  useEffect(() => {
+    if (signupStep !== 2) return;
+
+    if (signupCountdown === 0) {
+      setSlide("slide-right");
+      setTimeout(() => {
+        setIsSignUp(false);
+        setSignupStep(1);
+        setSlide("slide-center");
+      }, 450);
+      return;
+    }
+
+    const t = setTimeout(() => {
+      setSignupCountdown((c) => c - 1);
+    }, 1000);
+
+    return () => clearTimeout(t);
+  }, [signupStep, signupCountdown]);
+
+
+  // =====================================================================
+  // RENDER UI
+  // =====================================================================
   return (
     <>
       <Suspense fallback={<LoginSkeleton />}>
+
         <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gray-100 dark:bg-black">
 
           <div
@@ -393,75 +329,90 @@ function Login() {
             />
 
             {/* RIGHT SIDE */}
-            <div className="side side-form">
+            <div className="side side-form flex flex-col">
 
-              {/* LOGIN / RESET */}
-              <div className="form-box signin slide-container">
-                <div className={`slide-panel ${slide}`}>
+              {/* FIXED PADDING COLUMN */}
+              <div className="w-full pl-14 pr-10">
 
-                  {!isResetStep ? (
-                    <LoginView
-                      googleBtnRef={googleBtnRef}
-                      handleFacebook={handleFacebookResponse}
-                      handleGoogleSuccess={handleGoogleSuccess}
-                      handleLinkedIn={handleLinkedInLogin}
-                      handleLogin={handleLogin}
-                      loginData={loginData}
-                      setLoginData={setLoginData}
-                      validLogin={validLogin}
-                      error={error}
-                      setIsSignUp={setIsSignUp}
-                      setIsResetStep={setIsResetStep}
-                      setResetStep={setResetStep}
-                      setError={setError}
-                      setSlide={setSlide}
-                    />
-                  ) : (
-                    <ResetPasswordSteps
-                      resetStep={resetStep}
-                      setResetStep={setResetStep}
-                      resetEmail={resetEmail}
-                      setResetEmail={setResetEmail}
-                      resetEmailExists={resetEmailExists}
-                      resetMessage={resetMessage}
-                      setResetMessage={setResetMessage}
-                      setLoading={setLoading}
-                      setIsResetStep={setIsResetStep}
-                      setSlide={setSlide}
-                    />
-                  )}
+                {/* SOCIAL BUTTONS (FIXED ALIGNMENT) */}
+                
 
+                {/* LOGIN / RESET */}
+                <div className="form-box signin slide-container">
+                  <div className={`slide-panel ${slide}`}>
+
+                    {!isResetStep ? (
+                      <LoginView
+                         googleBtnRef={googleBtnRef}
+                          triggerGoogleLogin={triggerGoogleLogin}
+                          handleFacebookResponse={handleFacebookResponse}
+                          handleLinkedInLogin={handleLinkedInLogin}
+                          handleGoogleSuccess={handleGoogleSuccess}
+                          handleLogin={handleLogin}
+                          loginData={loginData}
+                          setLoginData={setLoginData}
+                          validLogin={validLogin}
+                          error={error}
+                          setIsSignUp={setIsSignUp}
+                          setIsResetStep={setIsResetStep}
+                          setResetStep={setResetStep}
+                          setError={setError}
+                          setSlide={setSlide}
+                      />
+                    ) : (
+                      <ResetPasswordSteps
+                        resetStep={resetStep}
+                        setResetStep={setResetStep}
+                        resetEmail={resetEmail}
+                        setResetEmail={setResetEmail}
+                        resetEmailExists={resetEmailExists}
+                        resetMessage={resetMessage}
+                        setResetMessage={setResetMessage}
+                        setLoading={setLoading}
+                        setIsResetStep={setIsResetStep}
+                        setSlide={setSlide}
+                      />
+                    )}
+
+                  </div>
                 </div>
+
+                {/* SIGNUP FORM */}
+                <form onSubmit={handleSignup}>
+                  <SignupSteps
+                    signupStep={signupStep}
+                    signupData={signupData}
+                    setSignupData={setSignupData}
+                    scorePassword={scorePassword}
+                    signupPasswordStrength={signupPasswordStrength}
+                    setSignupPasswordStrength={setSignupPasswordStrength}
+                    handleSignup={handleSignup}
+                    validSignup={validSignup}
+                    error={error}
+                    emailExists={emailExists}
+                    usernameExists={usernameExists}
+                    checkingEmail={checkingEmail}
+                    checkingUsername={checkingUsername}
+                    setIsSignUp={setIsSignUp}
+                    setSlide={setSlide}
+                    countdown={signupCountdown}
+                  />
+                </form>
+
               </div>
-
-              {/* SIGNUP FORM */}
-              <form onSubmit={handleSignup}>
-                <SignupSteps
-                  signupStep={signupStep}
-                  signupData={signupData}
-                  setSignupData={setSignupData}
-                  scorePassword={scorePassword}
-                  signupPasswordStrength={signupPasswordStrength}
-                  setSignupPasswordStrength={setSignupPasswordStrength}
-                  handleSignup={handleSignup}
-                  validSignup={validSignup}
-                  error={error}
-                  emailExists={emailExists}
-                  usernameExists={usernameExists}
-                  checkingEmail={checkingEmail}
-                  checkingUsername={checkingUsername}
-                  setIsSignUp={setIsSignUp}
-                  setSlide={setSlide}
-                  countdown={signupCountdown}
-                />
-              </form>
-
             </div>
           </div>
 
-          {/* HIDDEN GOOGLE */}
-          <div ref={googleBtnRef}
-            style={{ position: "absolute", left: "-9999px", top: "0", pointerEvents: "none" }}
+
+          {/* HIDDEN GOOGLE LOGIN BUTTON (popup trigger) */}
+          <div
+            ref={googleBtnRef}
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              top: "0",
+              pointerEvents: "none"
+            }}
           >
             <GoogleLogin
               clientId={GOOGLE_CLIENT_ID}
@@ -478,7 +429,10 @@ function Login() {
 
 export default Login;
 
-// ============================= LEFT PANEL ==============================
+
+// =====================================================================
+// LEFT PANEL
+// =====================================================================
 function LeftPanel({
   isSignUp,
   setIsSignUp,
@@ -506,7 +460,6 @@ function LeftPanel({
         <button
           onClick={() => {
             setSlide(isSignUp ? "slide-right" : "slide-left");
-
             setTimeout(() => {
               setIsSignUp(!isSignUp);
               setIsResetStep(false);
@@ -514,8 +467,10 @@ function LeftPanel({
               setSlide("slide-center");
             }, 450);
           }}
-          className="px-10 py-3 border border-white rounded-full font-semibold
-            hover:bg-white hover:text-emerald-600 transition"
+          className="
+            px-10 py-3 border border-white rounded-full font-semibold
+            hover:bg-white hover:text-emerald-600 transition
+          "
         >
           {isSignUp ? "SIGN IN" : "SIGN UP"}
         </button>
@@ -524,13 +479,17 @@ function LeftPanel({
   );
 }
 
-// ============================== LOGIN VIEW =============================
+
+// =====================================================================
+// LOGIN VIEW
+// =====================================================================
 function LoginView({
   googleBtnRef,
-  handleLogin,
-  handleFacebook,
+  triggerGoogleLogin,
+  handleFacebookResponse,
+  handleLinkedInLogin,
   handleGoogleSuccess,
-  handleLinkedIn,
+  handleLogin,
   loginData,
   setLoginData,
   validLogin,
@@ -540,24 +499,23 @@ function LoginView({
   setResetStep,
   setError,
   setSlide,
-}) {
+}){
   return (
     <>
-      <h2 className="text-3xl font-bold text-emerald-600 mb-6 text-center md:text-left">
+      <h2 className="text-3xl font-bold text-emerald-600 mb-6 text-left">
         Sign In
       </h2>
-
-      <div className="flex justify-center md:justify-start gap-4 mb-6">
+      <div className="flex justify-start mt-6 mb-6">
         <SocialButtons
           googleBtnRef={googleBtnRef}
+          triggerGoogleLogin={triggerGoogleLogin}
           setError={setError}
-          handleFacebook={handleFacebook}
-          handleLinkedIn={handleLinkedIn}
+          handleFacebook={handleFacebookResponse}
+          handleLinkedIn={handleLinkedInLogin}
           handleGoogleSuccess={handleGoogleSuccess}
         />
       </div>
-
-      <p className="text-gray-500 text-center md:text-left text-sm mb-6">
+      <p className="text-gray-500 text-left text-sm mb-6">
         or use your account
       </p>
 
