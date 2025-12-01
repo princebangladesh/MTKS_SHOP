@@ -5,21 +5,21 @@ import AnimatedSocialButton from "./AnimatedSocialButton";
 
 export default function SocialButtons({
   googleBtnRef,
-  triggerGoogleLogin,
   setError,
   handleFacebook,
   handleLinkedIn,
   handleGoogleSuccess,
 }) {
   return (
-    <div className="flex gap-6 items-center">
-
-      {/* Google */}
+    <div className="flex gap-6 mb-6 justify-center md:justify-start items-center">
+      
+      {/* GOOGLE */}
       <AnimatedSocialButton
         color="#DB4437"
         onClick={() => {
-          setError("");
-          triggerGoogleLogin();
+          setTimeout(() => setError(""), 100);
+          const btn = googleBtnRef.current?.querySelector("div[role='button']");
+          if (btn) btn.click();
         }}
         icon={
           <img
@@ -30,7 +30,7 @@ export default function SocialButtons({
         }
       />
 
-      {/* Facebook */}
+      {/* FACEBOOK */}
       <FacebookLogin
         appId="1960201038102026"
         fields="name,email,picture"
@@ -47,13 +47,10 @@ export default function SocialButtons({
         )}
       />
 
-      {/* LinkedIn */}
+      {/* LINKEDIN */}
       <AnimatedSocialButton
         color="#0A66C2"
-        onClick={() => {
-          setError("");
-          handleLinkedIn();
-        }}
+        onClick={handleLinkedIn}
         icon={<FaLinkedin className="text-lg" />}
       />
     </div>
