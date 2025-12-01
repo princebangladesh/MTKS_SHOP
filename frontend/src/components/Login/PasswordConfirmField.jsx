@@ -30,7 +30,7 @@ export default function PasswordConfirmField({
         />
 
         <label
-          className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all 
+          className={`absolute left-4 px-1 bg-white dark:bg-neutral-900 transition-all dark:text-white
             ${active ? "-top-3 text-xs font-semibold" : "top-3 text-gray-400"}`}
         >
           {label}
